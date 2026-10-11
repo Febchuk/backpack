@@ -13,7 +13,8 @@ export function buildSystemPrompt(input: PromptInput): string {
         `MISSION: the player's goal is "${input.missionGoal}".`,
         `Required phrases (all must be used, by intent, to complete the mission): ${list(required)}.`,
         `Bonus phrases: ${list(bonus)}.`,
-        `Set "mission_complete" to true only if every required phrase was used; otherwise false.`,
+        `Set "mission_complete" to true only if every required phrase was used, in this turn or earlier in this conversation (see MEMORY); otherwise false.`,
+        `List in "phrases_used" only the phrases used in this turn.`,
       ].join("\n")
     : [
         "OPEN PLAY: there is no mission. Chat freely and naturally in character.",
