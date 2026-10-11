@@ -152,7 +152,8 @@ describe("L3 backend: café → skip evening → debrief → market", () => {
     const m = NpcTurnResponse.parse(await (await npcTurn(s.url, "margaux", id, "Un croissant")).json());
     expect(m.mission_complete).toBeNull();
     const st = await state(id);
-    expect(statusOf(st, "ça va")).toBe("practicing");
-    expect(statusOf(st, "s'il vous plaît")).toBe("missed");
+    expect(statusOf(st, "ça va ?")).toBe("practicing");
+    expect(statusOf(st, "un croissant")).toBe("practicing");
+    expect(statusOf(st, "une baguette")).toBe("missed");
   });
 });

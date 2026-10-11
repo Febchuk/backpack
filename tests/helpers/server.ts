@@ -14,7 +14,14 @@ export interface TestServer {
 
 /** Boots the real Express app on an ephemeral port with an in-memory DB and mock adapters. */
 export async function startTestServer(adapters?: Partial<Adapters>): Promise<TestServer> {
-  const deps = createDeps(loadConfig({ dbPath: ":memory:", mockGemini: true, mockDial: true, isProduction: false }), adapters);
+  const deps = createDeps(loadConfig({
+      dbPath: ":memory:",
+      mockGemini: true,
+      mockDial: true,
+      isProduction: false,
+      // Hermetic: a developer .env must not turn on signature checks. Tests that need it set it on deps.config.
+      dialWebhookSecret: undefined,
+    }), adapters);
   const app = createApp(deps);
   const server: Server = await new Promise((resolve) => {
     const s = app.listen(0, () => resolve(s));
