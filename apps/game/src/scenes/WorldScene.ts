@@ -188,6 +188,10 @@ export abstract class WorldScene extends Phaser.Scene {
     return this.config.layout.doors.map(({ name, to, x, y }) => ({ name, to, x, y }));
   }
 
+  placedNpcs() {
+    return this.config.layout.npcs.map(({ id, x, y }) => ({ id, x, y }));
+  }
+
   colliders(): Box[] {
     return this.config.layout.colliders.map((b) => ({ ...b }));
   }

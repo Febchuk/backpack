@@ -26,6 +26,8 @@ export interface BackpackHooks {
   colliders(): Collider[];
   /** L2: voice and juice state. */
   fx(): BackpackFx;
+  /** L3: NPCs placed in the current scene (talkable by walking up and holding SPACE). */
+  npcs(): { id: NpcId; x: number; y: number }[];
 }
 
 export interface PlayerPos {
@@ -85,6 +87,7 @@ export interface HookDeps {
         colliders(): Collider[];
         playerPos(): PlayerPos;
         thinkingBubble(): string | null;
+        placedNpcs(): { id: NpcId; x: number; y: number }[];
       }
     | undefined;
   ui(): BackpackUi;
@@ -120,5 +123,6 @@ export function installTestHooks(game: Phaser.Game, deps: HookDeps) {
     player: () => deps.world()?.playerPos() ?? null,
     colliders: () => deps.world()?.colliders() ?? [],
     fx: () => ({ ...deps.fx(), thinking: deps.world()?.thinkingBubble() ?? null }),
+    npcs: () => deps.world()?.placedNpcs() ?? [],
   };
 }

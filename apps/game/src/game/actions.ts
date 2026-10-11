@@ -87,7 +87,8 @@ export async function talk(npcId: NpcId, input: { text?: string; audio?: Blob })
   ui.dialogue.show(name, turn);
   speech.speak(turn.reply_fr);
   if (npcId === "clerk" && turn.mission_complete === true) ui.phoneForm.show();
-  void refreshState();
+  // Resolve only once the turn's effects (phrases, mission) are in the store, so callers see them.
+  await refreshState();
   return turn;
 }
 

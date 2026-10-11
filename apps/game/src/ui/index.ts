@@ -25,6 +25,7 @@ class Ui {
   readonly phoneForm = new PhoneForm(this.root);
   private scene = "Boot";
   private lastMessageCount: number | null = null;
+  private playerId: string | null = null;
   /** How many times the phone buzzed for a new Luna text (test hook). */
   buzzes = 0;
   /** Called when a new Luna text arrives (main wires this to a camera shake). */
@@ -97,6 +98,12 @@ class Ui {
   }
 
   private onState(s: PlayerState) {
+    if (s.player.id !== this.playerId) {
+      // A new player (title screen after /dev/reset): nothing they have yet is "new".
+      this.playerId = s.player.id;
+      this.lastMessageCount = null;
+      this.backpack.reset();
+    }
     const count = s.messages.length;
     if (this.lastMessageCount !== null && count > this.lastMessageCount) {
       this.buzzes += 1;
@@ -116,7 +123,8 @@ class Ui {
     this.hud.setVisible(GAMEPLAY_SCENES.has(this.scene));
     this.hud.render(s, this.scene === "Street" && cafeDone);
     this.phone.render(s);
-    this.backpack.render(s);
+    const added = this.backpack.render(s);
+    if (added.length) this.toast(`🎒 New in your backpack: ${added.join(", ")}`, 3500);
   }
 }
 
