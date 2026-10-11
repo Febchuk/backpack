@@ -1,0 +1,12 @@
+{
+  "images": {
+    "airport_bg": "airport_bg.png",
+    "street_bg": "street_bg.png",
+    "hostel_bg": "hostel_bg.png",
+    "player": "player.png",
+    "npc_clerk": "npc_clerk.png",
+    "npc_barista": "npc_barista.png",
+    "npc_girard": "npc_girard.png",
+    "npc_margaux": "npc_margaux.png"
+  }
+}
