@@ -1,0 +1,21 @@
+{
+  "name": "backpack",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.9.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test:level": "bash scripts/test-level.sh",
+    "test:live": "LIVE=1 vitest run --dir tests --testNamePattern @live"
+  },
+  "devDependencies": {
+    "@backpack/shared": "workspace:^",
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

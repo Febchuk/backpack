@@ -1,0 +1,20 @@
+{
+  "name": "@backpack/game",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173 --strictPort",
+    "build": "tsc -p . && vite build",
+    "preview": "vite preview --port 5173 --strictPort",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@backpack/shared": "workspace:*",
+    "phaser": "^3.87.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}

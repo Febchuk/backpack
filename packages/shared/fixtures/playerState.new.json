@@ -1,0 +1,10 @@
+{
+  "player": { "id": "p_fixture", "phone": null, "level": 1, "euros": 50, "city": "paris" },
+  "phrases": [],
+  "missions": [
+    { "mission_key": "sim_kiosk", "status": "active", "stars": 0, "hints_used": 0 },
+    { "mission_key": "cafe_order", "status": "locked", "stars": 0, "hints_used": 0 }
+  ],
+  "unlocks": [],
+  "messages": []
+}

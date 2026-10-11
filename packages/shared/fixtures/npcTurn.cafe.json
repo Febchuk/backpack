@@ -1,0 +1,10 @@
+{
+  "reply_fr": "Bien sûr ! Un café crème ou un expresso ?",
+  "reply_en_hint": "Of course! A café crème or an espresso?",
+  "heard": "je voudrais un café s'il vous plaît",
+  "phrases_used": ["je voudrais", "s'il vous plaît"],
+  "phrases_missed": ["c'est combien ?"],
+  "hint": "Ask the price: C'est combien ?",
+  "mission_complete": false,
+  "mood": "patient"
+}

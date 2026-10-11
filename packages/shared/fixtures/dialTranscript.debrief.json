@@ -1,0 +1,9 @@
+{
+  "call_id": "mock_call_fixture",
+  "player_id": "p_fixture",
+  "kind": "debrief",
+  "turns": [
+    { "speaker": "luna", "text": "Tu as oublié de demander le prix. Répète : c'est combien ?" },
+    { "speaker": "player", "text": "C'est combien ?" }
+  ]
+}
