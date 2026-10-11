@@ -56,7 +56,8 @@ export function dialWebhookRouter(deps: Deps) {
 
   r.post("/dial/webhook", async (req, res) => {
     if (!isDialDelivery(req)) {
-      // Shape 1: our normalized DialTranscript (mocks, tests, e2e).
+      // Shape 1: our normalized DialTranscript (mocks, tests, e2e). Unsigned, so refused once real Dial is live.
+      if (!deps.config.mockDial) return res.status(403).json({ ok: false, error: "unsigned transcripts disabled with real Dial" });
       const body = DialTranscript.safeParse(req.body);
       if (!body.success) return res.status(400).json({ ok: false, error: body.error.message });
       if (!deps.repo.playerExists(body.data.player_id)) return res.status(404).json({ ok: false, error: "unknown player" });

@@ -43,7 +43,7 @@ export function createApp(deps: Deps) {
     if (req.method === "OPTIONS") return res.sendStatus(204);
     next();
   });
-  app.use(express.json({ limit: "2mb" }));
+  app.use(express.json({ limit: "2mb", verify: (req, _res, buf) => ((req as any).rawBody = buf.toString()) }));
   app.get("/health", (_req, res) => res.json({ ok: true }));
   app.use(playersRouter(deps));
   app.use(stateRouter(deps));
