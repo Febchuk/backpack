@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { District, MissionKey } from "@backpack/shared";
 import type { Deps } from "../app";
+import { lunaTools } from "./tools";
 
 /** Per-request call context. `userNumber` is Dial's `X-Dial-User-Number` (the player's phone on our outbound calls). */
 export interface McpCallContext {
@@ -67,7 +68,7 @@ export function createLunaMcpServer({ repo }: Deps, ctx: McpCallContext = {}) {
     async ({ player_id }) => {
       const p = resolve(player_id);
       if ("error" in p) return p.error;
-      return json({ phrases: repo.missedPhrases(p.id) });
+      return json(lunaTools.getMissedPhrases(repo, p.id));
     },
   );
 
@@ -80,8 +81,7 @@ export function createLunaMcpServer({ repo }: Deps, ctx: McpCallContext = {}) {
     async ({ player_id, phrase }) => {
       const p = resolve(player_id);
       if ("error" in p) return p.error;
-      repo.markMastered(p.id, phrase);
-      return json({ ok: true, phrase, status: repo.phraseStatus(p.id, phrase) });
+      return json(lunaTools.markPhraseMastered(repo, p.id, phrase));
     },
   );
 
@@ -108,8 +108,7 @@ export function createLunaMcpServer({ repo }: Deps, ctx: McpCallContext = {}) {
     async ({ player_id, district }) => {
       const p = resolve(player_id);
       if ("error" in p) return p.error;
-      repo.unlock(p.id, district);
-      return json({ ok: true, district });
+      return json(lunaTools.unlockDistrict(repo, p.id, district));
     },
   );
 
