@@ -54,3 +54,14 @@ export const GLOSSARY: Record<string, string> = {
   "s'il vous plaît": "please",
   "c'est combien ?": "how much is it?",
 };
+
+/** L4 economy: what completing a mission costs, and what a fumbled turn costs. Euros never go below 0. */
+export const ECONOMY = {
+  missionCost: { sim_kiosk: 10, cafe_order: 3 } as Record<MissionKey, number>,
+  fumblePenalty: 1,
+} as const;
+
+/** L4 stars on completion: 3 with no hints, 2 with one, 1 with two or more. Debrief `award_star` adds on top (max 3). */
+export function starsForHints(hintsUsed: number): number {
+  return Math.max(1, 3 - hintsUsed);
+}

@@ -164,3 +164,19 @@ Dial reference docs are vendored in `docs/vendor/dial/`. The API is `https://api
 - `district` is validated with `District`, and `mission_id` with `MissionKey`.
 
 **NpcTurnInput** now includes `npcId`.
+
+## Level 3 additions (full loop with live state)
+
+No new shapes. L3 makes the existing contract true end to end:
+- Café mission grading writes phrases into `phrases`, and the backpack shows the mastered ones.
+- `/skip-evening` places a debrief call whose instruction names today's missed phrases. The `/dial/webhook` grading masters the phrases the player says, and on a debrief it unlocks `market`.
+- Luna's Dial agent uses Context MCP at `${PUBLIC_URL}/mcp`, so `mark_phrase_mastered` and `unlock_district` reach the game through `/state` polling in under 4 s.
+- `girard` (Street bench) and `margaux` (Street boulangerie) are open play: no mission key, `mission_complete: null`, phrases still logged.
+
+## Level 4 additions (P1)
+
+- **Euros** (`ECONOMY` in `missions.ts`): completing a mission subtracts `ECONOMY.missionCost[key]`. An NPC turn with a non-empty `phrases_missed` and mood `impatient` or `cold` subtracts `ECONOMY.fumblePenalty`. The floor is 0. The repo adds `spendEuros(playerId, n)`.
+- **Stars**: on mission completion the server sets `stars = starsForHints(hints_used)`. The MCP tool `award_star` still adds 1 (max 3).
+- **Adaptive NPCs**: at `level` 1, personas speak slowly in short sentences, and `reply_en_hint` may begin with a stage direction in asterisks (`*points at the menu*`), which the dialogue box shows in italics. TTS speaks at a slower rate at level 1. No schema change.
+- **Inès** (`ines`, Hostel desk) and **Théo** (`theo`, Street corner) are open play. The manifest adds `npc_ines` and `npc_theo`.
+- **Hostel day summary** shows phrases learned, stars per mission, and euros left.

@@ -7,6 +7,8 @@
     "npc_clerk": "npc_clerk.png",
     "npc_barista": "npc_barista.png",
     "npc_girard": "npc_girard.png",
-    "npc_margaux": "npc_margaux.png"
+    "npc_margaux": "npc_margaux.png",
+    "npc_ines": "npc_ines.png",
+    "npc_theo": "npc_theo.png"
   }
 }
