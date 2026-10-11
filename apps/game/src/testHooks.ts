@@ -11,6 +11,19 @@ export interface BackpackHooks {
   skipEvening(): Promise<void>;
   state(): PlayerState | null;
   enter(scene: string): void;
+  doors(): { name: string; to: string; x: number; y: number }[];
+  ui(): BackpackUi;
+}
+
+export interface BackpackUi {
+  dialogue: string | null;
+  phoneOpen: boolean;
+  phoneFormOpen: boolean;
+  messages: number;
+  activeMission: string | null;
+  backpack: string[];
+  marketUnlocked: boolean;
+  skipEveningVisible: boolean;
 }
 
 declare global {
@@ -37,6 +50,8 @@ export function installTestHooks(game: Phaser.Game, extra: Partial<BackpackHooks
       for (const s of game.scene.getScenes(true)) s.scene.stop();
       game.scene.start(key);
     },
+    doors: () => [],
+    ui: notYet("ui") as BackpackHooks["ui"],
     ...extra,
   };
 }

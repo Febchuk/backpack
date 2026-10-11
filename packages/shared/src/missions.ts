@@ -43,3 +43,14 @@ export function normalizePhrase(s: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+/** English glosses shown on backpack items. */
+export const GLOSSARY: Record<string, string> = {
+  bonjour: "hello",
+  merci: "thank you",
+  "je voudrais une carte SIM": "I would like a SIM card",
+  "je voudrais un café": "I would like a coffee",
+  "je voudrais": "I would like",
+  "s'il vous plaît": "please",
+  "c'est combien ?": "how much is it?",
+};

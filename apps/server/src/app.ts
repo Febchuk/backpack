@@ -4,6 +4,7 @@ import type { Adapters } from "./adapters/types";
 import { createGeminiAdapter } from "./adapters/gemini";
 import { createDialAdapter } from "./adapters/dial";
 import { openDb, type Db } from "./db/db";
+import { repo, type Repo } from "./db/repo";
 import { playersRouter } from "./routes/players";
 import { stateRouter } from "./routes/state";
 import { npcRouter } from "./routes/npc";
@@ -16,13 +17,16 @@ import { mcpRouter } from "./mcp/router";
 export interface Deps {
   config: Config;
   db: Db;
+  repo: Repo;
   adapters: Adapters;
 }
 
 export function createDeps(config: Config, adapters?: Partial<Adapters>): Deps {
+  const db = openDb(config.dbPath);
   return {
     config,
-    db: openDb(config.dbPath),
+    db,
+    repo: repo(db),
     adapters: {
       gemini: adapters?.gemini ?? createGeminiAdapter(config),
       dial: adapters?.dial ?? createDialAdapter(config),

@@ -24,7 +24,7 @@ There is one demo player at a time. The game calls `POST /players` on Title, the
 | `POST /npc/:npcId/turn` | multipart: `audio` (webm blob) **or** `text`, plus `player_id` and optional `mission_key` | `NpcTurnResponse` | Logs phrases: used → `practicing` (or `mastered` if already practicing), missed → `missed`. `mission_complete: true` sets the mission to `done` and activates the next one |
 | `POST /activate` | `{player_id, phone}` | `{ok, call_id}` | Saves the phone number, places Luna's intro call, and sends the SMS "Mission: get a coffee" (an `sms` event, so it shows up in `messages`) |
 | `POST /skip-evening` | `{player_id}` | `{ok, call_id}` | Places the debrief call. The call instruction holds Luna's persona plus today's missed phrases |
-| `POST /dial/webhook` | `DialTranscript` | `{ok}` | Grades the call transcript, marks phrases said correctly as mastered, and unlocks `market` if the phrases targeted by the debrief are mastered |
+| `POST /dial/webhook` | `DialTranscript` | `{ok}` | Grades the call transcript. Any phrase that was `missed` before the call and that the player says correctly (normalized match in a `player` turn) becomes `mastered`. On a `debrief` call, `market` unlocks if at least one such phrase was mastered. The transcript is stored as a `call` event |
 | `POST /mcp` | MCP Streamable HTTP | | MCP tools (see below) |
 | `POST /dev/reset` | `{}` | `{ok}` | Wipes the DB. Only enabled when `NODE_ENV !== 'production'` |
 
@@ -114,5 +114,26 @@ The game exposes `window.__backpack` in dev and test builds, so Playwright can d
 { scene(): string; playerId(): string | null; teleport(x: number, y: number): void;
   talk(npcId: string, text: string): Promise<NpcTurnResponse>;  // the text path of hold-to-talk
   submitPhone(phone: string): Promise<void>; skipEvening(): Promise<void>;
-  state(): PlayerState | null; enter(scene: string): void }
+  state(): PlayerState | null; enter(scene: string): void;
+  doors(): { name: string; to: string; x: number; y: number }[];   // door triggers in the current scene
+  ui(): { dialogue: string | null; phoneOpen: boolean; phoneFormOpen: boolean; messages: number;
+          activeMission: string | null; backpack: string[]; marketUnlocked: boolean; skipEveningVisible: boolean } }
 ```
+
+Door names: Airport has `exit` (to Street). Street has `airport`, `cafe` (stays in Street; it marks the café area where the `barista` stands), `hostel` (to Hostel) and `market` (blocked until unlocked). Hostel has `street`. Teleporting onto a door that leads to another scene switches scenes within 1 s.
+
+## Server data layer
+
+`apps/server/src/db/repo.ts` (owned by the integrator) is the only place that writes SQL: `createPlayer`, `getState`, `setPhone`, `logTurn`, `markMastered`, `missedPhrases`, `completeMission`, `awardStar`, `unlock`, `addEvent`, `summary`, and others. Routes use `deps.repo`. If a lane needs a new repo function, it adds it at the bottom of `repo.ts` and says so in its report.
+
+## Assets
+
+`apps/game/public/assets/manifest.json` is owned by the assets lane:
+
+```json
+{ "images": { "airport_bg": "airport_bg.png", "street_bg": "street_bg.png", "hostel_bg": "hostel_bg.png",
+              "player": "player.png", "npc_clerk": "npc_clerk.png", "npc_barista": "npc_barista.png",
+              "npc_girard": "npc_girard.png", "npc_margaux": "npc_margaux.png" } }
+```
+
+The game loads the manifest at boot and loads each image it lists. Every scene must still render if a texture is missing, by falling back to a colored rectangle. Backgrounds are 960×540; character sprites are 32×32 (a single frame at L1).
