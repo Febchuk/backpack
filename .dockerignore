@@ -1,0 +1,10 @@
+node_modules
+**/node_modules
+.env
+*.db
+*.db-*
+.git
+.claude
+test-results
+playwright-report
+apps/game/dist
