@@ -15,6 +15,12 @@ export interface Config {
   dialWebhookSecret: string | undefined;
   dialCallLanguage: string;
   publicUrl: string | undefined;
+  /** `managed`: Dial's own voice agent (default). `selfhosted`: Dial streams call audio to /dial/voice, voiced by ElevenLabs. */
+  voiceMode: "managed" | "selfhosted";
+  dialSelfHostedSecret: string | undefined;
+  elevenLabsApiKey: string | undefined;
+  elevenLabsAgentId: string | undefined;
+  elevenLabsVoiceId: string | undefined;
   dbPath: string;
   isProduction: boolean;
 }
@@ -31,6 +37,11 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     dialWebhookSecret: env.DIAL_WEBHOOK_SECRET || undefined,
     dialCallLanguage: env.DIAL_CALL_LANGUAGE || "fr-FR",
     publicUrl: env.PUBLIC_URL || undefined,
+    voiceMode: env.VOICE_MODE === "selfhosted" ? "selfhosted" : "managed",
+    dialSelfHostedSecret: env.DIAL_SELF_HOSTED_SECRET || undefined,
+    elevenLabsApiKey: env.ELEVENLABS_API_KEY || undefined,
+    elevenLabsAgentId: env.ELEVENLABS_AGENT_ID || undefined,
+    elevenLabsVoiceId: env.ELEVENLABS_VOICE_ID || undefined,
     dbPath: env.DB_PATH ?? "./backpack.db",
     isProduction: env.NODE_ENV === "production",
     ...overrides,
