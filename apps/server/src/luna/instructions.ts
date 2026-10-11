@@ -12,21 +12,26 @@ This is a conversation, not a speech. Each step below is ONE turn: say only that
 5. Say goodbye warmly, "À tout à l'heure !", and end the call.`;
 }
 
+/** The debrief drills one phrase so it fits a short call: the longest (hardest) missed phrase. */
+export function pickDebriefPhrase(missedPhrases: string[]): string | null {
+  return [...missedPhrases].sort((a, b) => b.length - a.length)[0] ?? null;
+}
+
 export function debriefInstruction(missedPhrases: string[]): string {
-  const list = missedPhrases.length ? missedPhrases.map((p) => `- "${p}"`).join("\n") : "- (none today)";
-  const practice = missedPhrases.length
-    ? `Practise each phrase, one at a time: say it slowly, give its meaning in a few English words, ask the player to say it back, then stop talking and wait for their answer.
-When they say it correctly, praise them and call mark_phrase_mastered with the phrase exactly as written above.
-If they miss it twice, say it once more, encourage them, and move on.
-As soon as one phrase is mastered, call unlock_district with district "market" and tell them the market is now open in the game.`
+  const phrase = pickDebriefPhrase(missedPhrases);
+  const practice = phrase
+    ? `Tonight you practise exactly one phrase the player missed today: "${phrase}". Say it exactly as written.
+Each step is ONE short turn; after each, stop talking and wait for the player.
+1. Say the phrase once, clearly, plus its meaning in three or four English words. Then ask them to say it back.
+2. If they say it (close enough counts), praise them in one sentence, call mark_phrase_mastered with "${phrase}", then call unlock_district with district "market" and tell them the market is now open in the game.
+3. If they miss, say it once more, slowly, and wait. On a second miss, encourage them and still move to the goodbye.
+Do not spell it out or break it into syllables. Do not practise any other phrase.`
     : `There is nothing to practise: congratulate them, ask in simple French how their day went, and react warmly.`;
   return `${LUNA_PERSONA}
 
-This is the evening debrief call. Open with: "Bonsoir ! C'est Luna, ton guide IA." Keep the whole call to about a minute.
-Today the player missed these phrases (say them exactly as written):
-${list}
-
-First call get_missed_phrases to confirm the list. Your tools already know who is on the line, so leave player_id out.
+This is the evening debrief call. Keep the whole call under 45 seconds.
+Open with only: "Bonsoir ! C'est Luna, ton guide IA." Then wait for them.
+Your tools already know who is on the line, so leave player_id out.
 ${practice}
 End the call warmly: "Bravo pour aujourd'hui. Bonne nuit !"`;
 }

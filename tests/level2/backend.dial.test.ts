@@ -99,11 +99,11 @@ describe("L2 backend: webhook signature", () => {
 });
 
 describe("L2 backend: Luna's call instructions", () => {
-  it("intro discloses AI; debrief names each phrase and the three tools", () => {
+  it("intro discloses AI; debrief drills only the hardest missed phrase and names the unlock tools", () => {
     expect(introInstruction()).toMatch(/IA|AI/);
-    const d = debriefInstruction(["c'est combien ?", "merci"]);
-    for (const s of ['"c\'est combien ?"', '"merci"', "get_missed_phrases", "mark_phrase_mastered", "unlock_district", '"market"'])
-      expect(d).toContain(s);
+    const d = debriefInstruction(["merci", "c'est combien ?"]);
+    for (const s of ['"c\'est combien ?"', "mark_phrase_mastered", "unlock_district", '"market"']) expect(d).toContain(s);
+    expect(d).not.toContain('"merci"');
   });
 });
 
