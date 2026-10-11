@@ -1,6 +1,12 @@
 /** Speaks NPC replies aloud with the browser's French voice. M mutes. */
 
 const RATE = 0.95;
+/** Adaptive NPCs: beginners (level 1) hear replies slower. */
+const BEGINNER_RATE = 0.8;
+
+export function rateForLevel(level: number | undefined): number {
+  return level !== undefined && level <= 1 ? BEGINNER_RATE : RATE;
+}
 let muted = false;
 let spoken = 0;
 
@@ -36,13 +42,13 @@ export const speech = {
   get spoken() {
     return spoken;
   },
-  speak(text: string) {
+  speak(text: string, level?: number) {
     const s = synth();
     if (!s || muted || !text) return;
     s.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "fr-FR";
-    u.rate = RATE;
+    u.rate = rateForLevel(level);
     const voice = pickFrenchVoice(s.getVoices());
     if (voice) u.voice = voice;
     s.speak(u);

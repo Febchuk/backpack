@@ -3,12 +3,18 @@ import { el, setVisible } from "./dom";
 
 const TYPE_MS = 22;
 
+/** Splits a leading `*stage direction*` (adaptive NPCs gesture for beginners) off the English hint. */
+export function splitStageDirection(en: string): { stage: string | null; rest: string } {
+  const m = /^\s*\*([^*]+)\*\s*/.exec(en);
+  return m ? { stage: m[1].trim(), rest: en.slice(m[0].length) } : { stage: null, rest: en };
+}
+
 /** Bottom dialogue box: NPC name, typewriter French reply, English hint, and Luna's tip. */
 export class Dialogue {
   readonly root = el("div", "panel dialogue hidden");
   private name = el("h3");
   private fr = el("div", "fr");
-  private en = el("div", "small");
+  private en = el("div", "small en");
   private hint = el("div", "hint");
   private timer: number | undefined;
   /** Full text of the current line (what the box is saying), or null when closed / thinking. */
@@ -37,7 +43,8 @@ export class Dialogue {
   say(speaker: string, fr: string, en = "", hint = "") {
     this.open(speaker);
     this.text = fr;
-    this.en.textContent = en;
+    const { stage, rest } = splitStageDirection(en);
+    this.en.replaceChildren(...(stage ? [el("em", "stage", stage), ` ${rest}`] : [rest]));
     this.hint.textContent = hint;
     let i = 0;
     this.timer = window.setInterval(() => {

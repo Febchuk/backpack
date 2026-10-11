@@ -14,6 +14,21 @@ const CSS = `
 #ui input { font: inherit; background: #fff7e8; color: #2b2140; border: 3px solid #000; padding: 4px 6px; outline: none; }
 
 #ui .hud { left: 8px; top: 8px; padding: 6px 10px; }
+#ui .hud .euros { display: inline-block; color: #ffd166; }
+#ui .hud .euros.flash { animation: coin 0.6s ease-out; }
+@keyframes coin { 0% { transform: scale(1.5); color: #ff6b6b; } 100% { transform: none; } }
+#ui .hud .delta { display: inline-block; animation: rise 2.5s ease-out forwards; }
+#ui .hud .delta.down { color: #ff6b6b; }
+#ui .hud .delta.up { color: #a5ffd6; }
+@keyframes rise { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-10px); opacity: 0; } }
+#ui .hud .stars { margin-left: 12px; color: #ffd166; }
+#ui .hud .star + .star { margin-left: 10px; }
+#ui .dialogue .stage { color: #ffd6a5; }
+#ui .summary { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 360px; }
+#ui .summary .row { display: flex; justify-content: space-between; margin: 3px 0; }
+#ui .summary .stars { color: #ffd166; letter-spacing: 2px; }
+#ui .summary .tomorrow { margin-top: 8px; }
+#ui .summary button { margin-top: 10px; }
 #ui .keys { right: 8px; bottom: 8px; padding: 4px 8px; }
 #ui .skip { position: absolute; right: 8px; top: 8px; pointer-events: auto; }
 #ui .dialogue { left: 16px; right: 16px; bottom: 12px; min-height: 84px; }
