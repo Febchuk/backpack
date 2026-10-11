@@ -137,3 +137,30 @@ Door names: Airport has `exit` (to Street). Street has `airport`, `cafe` (stays 
 ```
 
 The game loads the manifest at boot and loads each image it lists. Every scene must still render if a texture is missing, by falling back to a colored rectangle. Backgrounds are 960×540; character sprites are 32×32 (a single frame at L1).
+
+## Level 2 additions (real Dial, real Gemini)
+
+Dial reference docs are vendored in `docs/vendor/dial/`. The API is `https://api.getdial.ai`, authenticated with `Authorization: Bearer $DIAL_API_KEY`.
+
+**Env:** `DIAL_API_KEY`, `DIAL_FROM_NUMBER_ID` (the Dial number Luna calls and texts from), `DIAL_WEBHOOK_SECRET` (`whsec_…`; signature checks are skipped when it's unset), `DIAL_CALL_LANGUAGE` (default `fr-FR`), `PUBLIC_URL` (https tunnel or deploy), `GEMINI_API_KEY`.
+
+**DialAdapter**
+- `call`: `POST /v1/calls {to, fromNumberId, outboundInstruction, language}`; the response `id` is the `call_id`.
+- `sms`: `POST /v1/messages` (see `send-message.md`).
+- `getCall(id)`: `GET /v1/calls/{id}`, mapping `transcriptTurns` speakers `agent` → `luna` and `user` → `player`; `transfer_target` turns are dropped.
+
+**`POST /dial/webhook` accepts two body shapes:**
+1. Our normalized `DialTranscript` (mocks and tests). Unchanged.
+2. A Dial event envelope `{id, type, data, ...}` with the headers `X-Dial-Event-Type`, `X-Dial-Event-ID` and `X-Dial-Signature: t=…,v1=…`:
+   - When `DIAL_WEBHOOK_SECRET` is set, the signature is checked as HMAC-SHA256 over `${t}.${rawBody}` and must be at most 300 s old. A bad signature gets **401**.
+   - Deliveries are deduplicated on the event id: a redelivery returns **200** and does nothing. The event id is stored in the `call` event payload.
+   - `call.transcribed`: look up the player and kind (`intro`/`debrief`) from the `call` event written when the call was placed (its payload has `call_id`), call `dial.getCall(callId)`, then run the same grading as shape 1.
+   - Every other type (`webhook.ping`, `call.ended`, …), and any unknown call id, gets 200 and is ignored. Dial retries anything that isn't 2xx, so we never answer 404 to Dial.
+
+**MCP per-call authorization:**
+- When the `X-Dial-User-Number` header is present, every tool acts only on the player whose `phone` equals that number.
+- `player_id` becomes optional: if it's omitted, the player is resolved from the header. If it's given but doesn't match the header's player, the tool returns `isError: true`.
+- With no header (local tests, tool discovery), `player_id` is required, as in L1.
+- `district` is validated with `District`, and `mission_id` with `MissionKey`.
+
+**NpcTurnInput** now includes `npcId`.

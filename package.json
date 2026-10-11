@@ -8,13 +8,14 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test:level": "bash scripts/test-level.sh",
-    "test:live": "LIVE=1 vitest run --dir tests --testNamePattern @live"
+    "test:live": "LIVE=1 vitest run --testNamePattern @live"
   },
   "devDependencies": {
     "@backpack/shared": "workspace:^",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@playwright/test": "^1.48.0",
     "@types/node": "^22.0.0",
+    "dotenv": "^16.4.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
