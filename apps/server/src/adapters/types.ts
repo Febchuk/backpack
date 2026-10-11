@@ -9,6 +9,8 @@ export interface NpcTurnInput {
   level: number;
   audio?: { data: Buffer; mimeType: string };
   text?: string;
+  /** Last few turns with this NPC, oldest first, so NPCs remember the player. */
+  history?: { heard: string; reply_fr: string }[];
 }
 
 export interface GeminiAdapter {
