@@ -118,9 +118,10 @@ test("a quick tap and text mode (T) both open the text box instead of recording"
   expect((await g.fx()).recording).toBe(false);
   await page.keyboard.up("Space");
   await input.press("Escape");
+  await expect(input).toBeHidden();
 
   await page.keyboard.press("m");
-  expect((await g.fx()).muted).toBe(true);
+  await expect.poll(async () => (await g.fx()).muted).toBe(true);
 });
 
 test("thinking bubble shows over the NPC while the turn is pending", async ({ page }) => {

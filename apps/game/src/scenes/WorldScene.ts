@@ -49,6 +49,8 @@ export abstract class WorldScene extends Phaser.Scene {
   private bubble!: Phaser.GameObjects.Container;
   private bubbleNpc: NpcId | null = null;
   private recordingFor: NpcDef | null = null;
+  /** True between SPACE down and up, so one press opens the text box or the mic at most once. */
+  private spaceHeld = false;
   private insideDoor: string | null = null;
   private leaving = false;
 
@@ -113,13 +115,23 @@ export abstract class WorldScene extends Phaser.Scene {
     this.prompt = this.label(0, 0, "", "#a5ffd6").setDepth(1001).setVisible(false);
     this.bubble = this.makeBubble();
     this.keys = this.input.keyboard!.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT", false) as Record<string, Phaser.Input.Keyboard.Key>;
-    // Events, not JustDown: a quick tap can go down and up within one frame.
-    // Plugin listeners are cleared on scene shutdown, so re-entering a scene doesn't stack them.
-    this.input.keyboard!.on("keydown-SPACE", (e: KeyboardEvent) => this.onSpaceDown(e));
-    this.input.keyboard!.on("keyup-SPACE", () => void this.onSpaceUp());
+    // SPACE comes from DOM events, not Phaser's queued keyboard: Phaser could deliver one press's
+    // keydown twice, reopening the text box right after Escape closed it.
+    const spaceDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !ui.isTyping()) this.onSpaceDown(e);
+    };
+    const spaceUp = (e: KeyboardEvent) => {
+      if (e.code !== "Space") return;
+      this.spaceHeld = false;
+      void this.onSpaceUp();
+    };
+    window.addEventListener("keydown", spaceDown);
+    window.addEventListener("keyup", spaceUp);
 
     const offThinking = onThinking((npc) => this.showThinking(npc));
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      window.removeEventListener("keydown", spaceDown);
+      window.removeEventListener("keyup", spaceUp);
       offThinking();
       if (this.recordingFor) {
         this.recordingFor = null;
@@ -218,7 +230,9 @@ export abstract class WorldScene extends Phaser.Scene {
   // ── Talking ────────────────────────────────────────────────────────────────
 
   private onSpaceDown(e: KeyboardEvent) {
-    if (e.repeat || this.recordingFor || pushToTalk.active || !this.near || ui.isTyping()) return;
+    if (e.repeat || this.spaceHeld) return;
+    this.spaceHeld = true;
+    if (this.recordingFor || pushToTalk.active || !this.near || ui.isTyping()) return;
     const npc = this.near;
     this.faceNpc(npc.id);
     if (voiceMode.textMode) return ui.talkInput.show(npc.id, NPC_NAMES[npc.id]);
