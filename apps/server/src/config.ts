@@ -1,4 +1,8 @@
-import "dotenv/config";
+import { config as loadDotenv } from "dotenv";
+import { fileURLToPath } from "node:url";
+
+// .env lives at the repo root; the server runs with cwd apps/server.
+loadDotenv({ path: fileURLToPath(new URL("../../../.env", import.meta.url)) });
 import { DEFAULT_PORT } from "@backpack/shared";
 
 export interface Config {
