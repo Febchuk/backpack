@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import transcript from "@backpack/shared/fixtures/dialTranscript.debrief.json";
+import transcript from "@backpack/shared/fixtures/dialTranscript.debrief.json" with { type: "json" };
 
 const hooks = (page: Page) => ({
   scene: () => page.evaluate(() => window.__backpack!.scene()),

@@ -121,6 +121,7 @@ test("SIM done opens the phone form; submitPhone activates", async ({ page }) =>
 test("UI reads live state: messages, mission, backpack, skip button, market opens", async ({ page }) => {
   const state = structuredClone(fixtureState) as PlayerState;
   await page.route(new RegExp(`${API}/state/.*`), (route) => route.fulfill({ json: state }));
+  await page.route(`${API}/skip-evening`, (route) => route.fulfill({ json: { ok: true, call_id: "mock_call_ui" } }));
   const g = h(page);
   await startGame(page);
   await g.useDoor("exit");
