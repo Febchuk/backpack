@@ -11,7 +11,7 @@ if [[ "$N" == "coach" ]]; then
   echo "━━━ Coach ━━━"
   if [[ "$MODE" != "--only-e2e" ]]; then pnpm exec vitest run tests/coach || { echo "✗ Coach unit tests failed"; exit 1; }; fi
   if [[ "$MODE" != "--only-unit" ]] && compgen -G "tests/coach/*.e2e.ts" > /dev/null; then
-    pnpm exec playwright test tests/coach || { echo "✗ Coach e2e tests failed"; exit 1; }
+    pnpm exec playwright test -c playwright.coach.config.ts || { echo "✗ Coach e2e tests failed"; exit 1; }
   fi
   echo "✓ Coach green"
   exit 0
