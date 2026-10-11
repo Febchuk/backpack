@@ -2,34 +2,12 @@ import Phaser from "phaser";
 import type { PlayerState } from "@backpack/shared";
 import { store } from "../store";
 import { ui } from "../ui";
+import { MARKET_DOOR as MARKET, streetLayout } from "./layouts/street";
 import { WorldScene, type DoorDef, type WorldConfig } from "./WorldScene";
-
-const MARKET = { x: 720, y: 140, w: 120, h: 44 };
 
 /** One open Paris street: café, boulangerie, the (locked) market and the hostel. */
 export class Street extends WorldScene {
-  protected readonly config: WorldConfig = {
-    bg: "street_bg",
-    bgColor: 0x7d8597,
-    doors: [
-      { name: "airport", to: "Airport", x: 48, y: 300, w: 40, h: 96 },
-      { name: "cafe", to: "Street", x: 250, y: 140, w: 140, h: 44 },
-      { name: "market", to: "Market", ...MARKET },
-      { name: "hostel", to: "Hostel", x: 912, y: 300, w: 40, h: 96 },
-    ],
-    npcs: [
-      { id: "barista", x: 250, y: 200, color: 0x9c6644 },
-      { id: "margaux", x: 480, y: 200, color: 0xf4a261 },
-      { id: "girard", x: 600, y: 398, color: 0x6d6875 },
-    ],
-    solids: [
-      { x: 250, y: 63, w: 160, h: 94, color: 0x9c6644, label: "Café" },
-      { x: 480, y: 63, w: 160, h: 94, color: 0xe9c46a, label: "Boulangerie" },
-      { x: 720, y: 63, w: 160, h: 94, color: 0x6a994e, label: "Marché" },
-      { x: 600, y: 430, w: 96, h: 20, color: 0x8d6e63, label: "banc" },
-    ],
-    spawns: { default: { x: 110, y: 300 }, Airport: { x: 110, y: 300 }, Hostel: { x: 850, y: 300 } },
-  };
+  protected readonly config: WorldConfig = { bg: "street_bg", bgColor: 0x7d8597, layout: streetLayout };
 
   private shutter!: Phaser.GameObjects.Rectangle;
   private sign!: Phaser.GameObjects.Text;
@@ -40,9 +18,15 @@ export class Street extends WorldScene {
   }
 
   protected setup() {
-    this.label(48, 240, "← Aéroport", "#ffd6a5");
-    this.label(912, 240, "Auberge →", "#ffd6a5");
-    this.shutter = this.add.rectangle(MARKET.x, MARKET.y, MARKET.w, MARKET.h, 0x3a3a3a).setStrokeStyle(3, 0x000000);
+    const hasBg = this.textures.exists("street_bg");
+    if (!hasBg) {
+      this.label(48, 360, "← Aéroport", "#ffd6a5");
+      this.label(860, 330, "Auberge →", "#ffd6a5");
+    }
+    // With the art, the drawn gate is the shutter; the overlay only tints the doorway.
+    this.shutter = this.add
+      .rectangle(MARKET.x, MARKET.y, MARKET.w, MARKET.h, 0x3a3a3a, hasBg ? 0.35 : 1)
+      .setStrokeStyle(3, 0x000000, hasBg ? 0.5 : 1);
     this.sign = this.label(MARKET.x, MARKET.y, "FERMÉ", "#ff6b6b").setFontSize(16);
     this.marketOpen = false;
     this.applyUnlocks(store.state, false);

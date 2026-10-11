@@ -2,6 +2,8 @@ import { MISSION_FOR_NPC, type NpcId, type NpcTurnResponse } from "@backpack/sha
 import { api, pollState } from "../net/api";
 import { store } from "../store";
 import { ui } from "../ui";
+import { setThinking } from "./events";
+import { speech } from "./speech";
 
 /**
  * Everything the player can do that talks to the server. The UI and the test hooks both call these,
@@ -64,19 +66,26 @@ function missionFor(npcId: NpcId): string | undefined {
   return key && mission?.status !== "done" ? key : undefined;
 }
 
-/** One NPC turn: thinking indicator → server → dialogue box (and the SIM form when the kiosk is done). */
+/**
+ * One NPC turn: thinking bubble → server → typewriter dialogue spoken aloud (and the SIM form when the
+ * kiosk is done). `audio` is the hold-to-talk recording; `text` is the typed fallback and the test path.
+ */
 export async function talk(npcId: NpcId, input: { text?: string; audio?: Blob }): Promise<NpcTurnResponse> {
   const playerId = requirePlayerId();
   const name = NPC_NAMES[npcId];
   ui.dialogue.thinking(name);
+  setThinking(npcId);
   let turn: NpcTurnResponse;
   try {
     turn = await api.npcTurn(npcId, playerId, { ...input, missionKey: missionFor(npcId) });
   } catch (e) {
     ui.dialogue.say(name, "Pardon ? (They didn't catch that. Try again.)", (e as Error).message);
     throw e;
+  } finally {
+    setThinking(null);
   }
   ui.dialogue.show(name, turn);
+  speech.speak(turn.reply_fr);
   if (npcId === "clerk" && turn.mission_complete === true) ui.phoneForm.show();
   void refreshState();
   return turn;
@@ -84,7 +93,7 @@ export async function talk(npcId: NpcId, input: { text?: string; audio?: Blob })
 
 export async function activate(phone: string): Promise<void> {
   await api.activate(requirePlayerId(), phone);
-  ui.toast("SIM active! Luna is calling you…");
+  ui.callBanner("📞 Luna is calling your phone…", 8000);
   await refreshState();
 }
 
