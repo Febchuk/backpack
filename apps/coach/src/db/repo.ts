@@ -126,7 +126,7 @@ export function repo(db: Db) {
     /** The last `limit` events, oldest first. */
     async recentEvents(learnerId: string, limit = 10): Promise<CoachEvent[]> {
       const { rows } = await db.query<CoachEvent>(
-        `SELECT * FROM (SELECT * FROM events WHERE learner_id = $1 ORDER BY created_at DESC LIMIT $2) e ORDER BY created_at`,
+        `SELECT * FROM (SELECT * FROM events WHERE learner_id = $1 ORDER BY seq DESC LIMIT $2) e ORDER BY seq`,
         [learnerId, limit],
       );
       return rows.map(withIso);
