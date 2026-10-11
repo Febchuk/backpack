@@ -15,7 +15,7 @@ export function skipEveningRouter(deps: Deps) {
     try {
       const instruction = debriefInstruction(deps.repo.missedPhrases(player_id));
       const { call_id } = await deps.adapters.dial.call({ to: st.player.phone, kind: "debrief", instruction, player_id });
-      deps.repo.addEvent(player_id, "call", { call_id, kind: "debrief", status: "placed" });
+      deps.repo.addEvent(player_id, "call", { type: "placed", call_id, kind: "debrief" });
       res.json({ ok: true, call_id });
     } catch (e) {
       next(e);

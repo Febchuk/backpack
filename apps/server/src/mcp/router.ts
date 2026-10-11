@@ -7,7 +7,7 @@ import { createLunaMcpServer } from "./server";
 export function mcpRouter(deps: Deps) {
   const r = Router();
   r.post("/mcp", async (req, res) => {
-    const server = createLunaMcpServer(deps);
+    const server = createLunaMcpServer(deps, { userNumber: req.get("x-dial-user-number") });
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
     res.on("close", () => {
       void transport.close();
