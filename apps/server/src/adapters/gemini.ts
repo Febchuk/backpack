@@ -1,13 +1,24 @@
 import type { Config } from "../config";
 import type { GeminiAdapter } from "./types";
-import fixture from "@backpack/shared/fixtures/npcTurn.cafe.json" with { type: "json" };
-import { NpcTurnResponse } from "@backpack/shared";
+import { mockGrade } from "../npc/mockGrader";
 
-/** L0 stub: always returns the café fixture. Voice lane replaces with deterministic mock + real Gemini. */
-export function createGeminiAdapter(_config: Config): GeminiAdapter {
+/** Deterministic mock (CONTRACT.md). The audio path with no text grades as empty text. */
+export function createMockGeminiAdapter(): GeminiAdapter {
   return {
-    async npcTurn() {
-      return NpcTurnResponse.parse(fixture);
+    async npcTurn(input) {
+      return mockGrade(input);
     },
   };
+}
+
+export function createRealGeminiAdapter(_config: Config): GeminiAdapter {
+  return {
+    async npcTurn() {
+      throw new Error("Real Gemini adapter not implemented until L2");
+    },
+  };
+}
+
+export function createGeminiAdapter(config: Config): GeminiAdapter {
+  return config.mockGemini ? createMockGeminiAdapter() : createRealGeminiAdapter(config);
 }
