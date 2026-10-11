@@ -5,6 +5,9 @@
 import { createHash } from "node:crypto";
 import type { FactView, MemoryView, Relation } from "@backpack/shared/coach";
 import type { Embedder, ExtractedFact, Llm, Memory, Tts, VoiceNotes, VoiceProvisioner } from "./coach/contract";
+import { factSentence } from "./memory/sentences";
+
+export { factSentence };
 
 const FACT_PATTERNS: [RegExp, Relation][] = [
   [/\b(?:i (?:love|like|enjoy)|j'aime|j'adore|me gusta|me encanta)\s+([^.,!?]+)/i, "likes"],
@@ -115,21 +118,6 @@ export function createMockVoiceNotes(publicUrl: string): VoiceNotes {
     speak: async () => ({ url: `${publicUrl}/media/mock_${++n}.mp3` }),
   };
 }
-
-const FACT_SENTENCE: Record<Relation, (o: string) => string> = {
-  goal: (o) => `Goal: ${o}`,
-  trip_to: (o) => `Travelling to ${o}`,
-  trip_date: (o) => `Trip date: ${o}`,
-  interested_in: (o) => `Interested in ${o}`,
-  likes: (o) => `Likes ${o}`,
-  dislikes: (o) => `Dislikes ${o}`,
-  travelling_with: (o) => `Travelling with ${o}`,
-  struggles_with: (o) => `Struggles with ${o}`,
-  knows_phrase: (o) => `Knows the phrase "${o}"`,
-  anxious_about: (o) => `Anxious about ${o}`,
-  level: (o) => `Level ${o}`,
-};
-export const factSentence = (rel: Relation, object: string) => FACT_SENTENCE[rel](object);
 
 /** Stage-0 in-memory Memory. Lane B replaces it with the Postgres graph + vector store in memory/index.ts. */
 export function createInMemoryMemory(): Memory {
