@@ -1,13 +1,8 @@
 import type { NpcTurnResponse } from "@backpack/shared";
+import { splitStageDirection } from "../voice/ttsRate";
 import { el, setVisible } from "./dom";
 
 const TYPE_MS = 22;
-
-/** Splits a leading `*stage direction*` (adaptive NPCs gesture for beginners) off the English hint. */
-export function splitStageDirection(en: string): { stage: string | null; rest: string } {
-  const m = /^\s*\*([^*]+)\*\s*/.exec(en);
-  return m ? { stage: m[1].trim(), rest: en.slice(m[0].length) } : { stage: null, rest: en };
-}
 
 /** Bottom dialogue box: NPC name, typewriter French reply, English hint, and Luna's tip. */
 export class Dialogue {
@@ -43,8 +38,9 @@ export class Dialogue {
   say(speaker: string, fr: string, en = "", hint = "") {
     this.open(speaker);
     this.text = fr;
-    const { stage, rest } = splitStageDirection(en);
-    this.en.replaceChildren(...(stage ? [el("em", "stage", stage), ` ${rest}`] : [rest]));
+    // Adaptive NPCs: a leading *stage direction* (beginners get gestures) shows in italics.
+    const { direction, text } = splitStageDirection(en);
+    this.en.replaceChildren(...(direction ? [el("em", "stage", direction), ` ${text}`] : [text]));
     this.hint.textContent = hint;
     let i = 0;
     this.timer = window.setInterval(() => {
