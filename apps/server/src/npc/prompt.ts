@@ -1,7 +1,10 @@
 import type { NpcTurnInput } from "../adapters/types";
+import type { HistoryTurn } from "./history";
 
-/** System prompt for the real Gemini adapter: persona + mission + phrases + level, with a strict JSON reply shape. */
-export function buildSystemPrompt(input: Omit<NpcTurnInput, "audio" | "text">): string {
+export type PromptInput = Omit<NpcTurnInput, "audio" | "text" | "npcId"> & { npcId?: string; history?: HistoryTurn[] };
+
+/** System prompt for the real Gemini adapter: persona + mission + phrases + level + memory, with a strict JSON reply shape. */
+export function buildSystemPrompt(input: PromptInput): string {
   const required = input.requiredPhrases;
   const bonus = input.targetPhrases.filter((p) => !required.includes(p));
   const list = (xs: string[]) => (xs.length ? xs.map((p) => `"${p}"`).join(", ") : "(none)");
@@ -18,10 +21,18 @@ export function buildSystemPrompt(input: Omit<NpcTurnInput, "audio" | "text">): 
         `Set "mission_complete" to null.`,
       ].join("\n");
 
+  const memory = input.history?.length
+    ? [
+        "MEMORY: you remember your past conversations with this player (oldest first). Refer to them naturally if it fits, but grade only the new turn.",
+        ...input.history.map((h) => `- Player: "${h.heard}" / You: "${h.reply_fr}"`),
+      ].join("\n")
+    : "MEMORY: this is the first time you meet this player.";
+
   return [
     input.persona,
     `The player's French level is ${input.level} (1 = total beginner). Adapt your speed and vocabulary to it.`,
     mission,
+    memory,
     [
       "Grade on intent, not exact wording: a phrase counts as used if the player clearly said it or an equivalent, even with small mistakes.",
       'Every phrase listed above must appear exactly once, spelled exactly as listed, in either "phrases_used" or "phrases_missed".',

@@ -4,6 +4,7 @@ import { MISSIONS, MISSION_FOR_NPC, MissionKey, NpcId } from "@backpack/shared";
 import type { Deps } from "../app";
 import { PERSONAS } from "../npc/personas";
 import { OPEN_PLAY_PHRASES } from "../npc/mockGrader";
+import { recentNpcTurns, type NpcTurnInputWithHistory } from "../npc/history";
 
 /**
  * NPC turn. An NPC with a mission (or an explicit mission_key) always grades against that mission;
@@ -32,7 +33,8 @@ export function npcRouter(deps: Deps) {
       const level = deps.repo.getState(playerId)?.player.level ?? 1;
       const text = typeof req.body?.text === "string" ? req.body.text : undefined;
 
-      const turn = await deps.adapters.gemini.npcTurn({
+      const input: NpcTurnInputWithHistory = {
+        npcId: npc.data,
         persona: PERSONAS[npc.data],
         missionGoal: mission?.goal ?? null,
         targetPhrases,
@@ -40,7 +42,9 @@ export function npcRouter(deps: Deps) {
         level,
         text,
         audio: req.file ? { data: req.file.buffer, mimeType: req.file.mimetype } : undefined,
-      });
+        history: recentNpcTurns(deps.db, playerId, npc.data),
+      };
+      const turn = await deps.adapters.gemini.npcTurn(input);
 
       deps.repo.logTurn(playerId, turn.phrases_used, turn.phrases_missed);
       if (mission && turn.mission_complete === true) deps.repo.completeMission(playerId, mission.key);

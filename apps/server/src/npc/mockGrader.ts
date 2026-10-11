@@ -1,6 +1,5 @@
 import { normalizePhrase, type NpcId, type NpcTurnResponse } from "@backpack/shared";
 import type { NpcTurnInput } from "../adapters/types";
-import { PERSONAS } from "./personas";
 
 type Line = { fr: string; en: string };
 
@@ -42,13 +41,9 @@ export const OPEN_PLAY_PHRASES: Record<NpcId, string[]> = {
   theo: ["salut", "ça va", "merci"],
 };
 
-export function npcIdForPersona(persona: string): NpcId | undefined {
-  return (Object.keys(PERSONAS) as NpcId[]).find((id) => PERSONAS[id] === persona);
-}
-
 /** Deterministic grader for MOCK_GEMINI: case/accent-insensitive substring match per CONTRACT.md. */
-export function mockGrade(input: NpcTurnInput): NpcTurnResponse {
-  const npc = npcIdForPersona(input.persona);
+export function mockGrade(input: Omit<NpcTurnInput, "npcId"> & { npcId?: string }): NpcTurnResponse {
+  const npc = input.npcId as NpcId | undefined;
   const text = input.text ?? "";
   const heardNorm = normalizePhrase(text);
   const used: string[] = [];
@@ -59,7 +54,7 @@ export function mockGrade(input: NpcTurnInput): NpcTurnResponse {
   const missingRequired = input.requiredPhrases.filter((p) => !used.includes(p));
   const complete = input.missionGoal ? missingRequired.length === 0 : null;
   const good = complete ?? used.length > 0;
-  const lines = npc ? LINES[npc] : { done: { fr: "D'accord !", en: "Okay!" }, more: { fr: "Pardon ?", en: "Sorry?" } };
+  const lines = npc && npc in LINES ? LINES[npc] : { done: { fr: "D'accord !", en: "Okay!" }, more: { fr: "Pardon ?", en: "Sorry?" } };
   const line = good ? lines.done : lines.more;
   const saidBonjour = heardNorm.includes("bonjour");
   return {
