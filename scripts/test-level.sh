@@ -1,10 +1,21 @@
 #!/usr/bin/env bash
 # Level-order testing: runs levels 0..N in order and stops at the first failing level.
-# Usage: scripts/test-level.sh <N> [--only-unit|--only-e2e]
+# Usage: scripts/test-level.sh <N|coach> [--only-unit|--only-e2e]
 set -euo pipefail
-N="${1:?usage: test-level.sh <level> [--only-unit|--only-e2e]}"
+N="${1:?usage: test-level.sh <level|coach> [--only-unit|--only-e2e]}"
 MODE="${2:-all}"
 cd "$(dirname "$0")/.."
+
+# The phone coach (apps/coach) is gated on its own, independent of the game levels.
+if [[ "$N" == "coach" ]]; then
+  echo "━━━ Coach ━━━"
+  if [[ "$MODE" != "--only-e2e" ]]; then pnpm exec vitest run tests/coach || { echo "✗ Coach unit tests failed"; exit 1; }; fi
+  if [[ "$MODE" != "--only-unit" ]] && compgen -G "tests/coach/*.e2e.ts" > /dev/null; then
+    pnpm exec playwright test tests/coach || { echo "✗ Coach e2e tests failed"; exit 1; }
+  fi
+  echo "✓ Coach green"
+  exit 0
+fi
 
 for ((i = 0; i <= N; i++)); do
   dir="tests/level$i"

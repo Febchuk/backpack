@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
-  "exports": { ".": "./src/index.ts", "./fixtures/*": "./fixtures/*" },
+  "exports": { ".": "./src/index.ts", "./coach": "./src/coach.ts", "./fixtures/*": "./fixtures/*" },
   "scripts": { "typecheck": "tsc -p .", "build": "tsc -p ." },
   "dependencies": { "zod": "^3.23.0" }
 }
