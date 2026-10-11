@@ -37,8 +37,11 @@ describe("L0 server: every route answers with schema-valid JSON", () => {
     expect(CallResponse.safeParse(await (await s.post("/skip-evening", { player_id: id })).json()).success).toBe(true);
   });
 
-  it("POST /dial/webhook and /dev/reset return ok", async () => {
-    expect((await (await s.post("/dial/webhook", {})).json()).ok).toBe(true);
+  it("POST /dial/webhook (valid transcript) and /dev/reset return ok", async () => {
+    const player = PlayerState.parse(await (await s.post("/players")).json());
+    const transcript = { call_id: "mock_call_1", player_id: player.player.id, kind: "intro", turns: [] };
+    expect((await (await s.post("/dial/webhook", transcript)).json()).ok).toBe(true);
+    expect((await s.post("/dial/webhook", {})).status).toBe(400);
     expect(await (await s.post("/dev/reset")).json()).toEqual({ ok: true });
   });
 });
