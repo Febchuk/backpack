@@ -1,10 +1,11 @@
 import { Router } from "express";
 import type { Deps } from "../app";
-import fixture from "@backpack/shared/fixtures/playerState.new.json" with { type: "json" };
 
-/** L0 stub: returns the new-player fixture. Backend lane: create player + missions in SQLite. */
-export function playersRouter(_deps: Deps) {
+export function playersRouter(deps: Deps) {
   const r = Router();
-  r.post("/players", (_req, res) => res.json(fixture));
+  r.post("/players", (_req, res) => {
+    const id = deps.repo.createPlayer();
+    res.json(deps.repo.getState(id));
+  });
   return r;
 }
