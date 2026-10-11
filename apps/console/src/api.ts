@@ -40,4 +40,7 @@ export const api = {
   callLearner: (learnerId: string) => call<{ call_id: string }>("POST", `/api/learners/${learnerId}/call`),
   learnerMemory: (learnerId: string) => call<LearnerMemoryView>("GET", `/api/learners/${learnerId}/memory`),
   deleteLearner: (learnerId: string) => call<void>("DELETE", `/api/learners/${learnerId}`),
+  demoStatus: () => call<{ enabled: boolean }>("GET", "/api/demo"),
+  startDemo: (agentId: string, phone: string) => call<LearnerView>("POST", "/api/demo/start", { agent_id: agentId, phone }),
+  demoFollowup: (learnerId: string) => call<{ ok: true }>("POST", `/api/learners/${learnerId}/demo/followup`),
 };

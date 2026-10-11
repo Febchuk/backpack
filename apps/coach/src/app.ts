@@ -11,6 +11,7 @@ import { createTts } from "./voice/tts";
 import { createVoiceNotes } from "./voice/notes";
 import { createVoiceProvisioner } from "./voice/provision";
 import { createEngine } from "./coach/engine";
+import { createDemoEngine } from "./demo/engine";
 import { dialWebhookRouter } from "./dial/webhook";
 import { mediaRouter } from "./routes/media";
 import { apiRouter } from "./routes/api";
@@ -41,7 +42,7 @@ export async function createDeps(config: Config, overrides: Partial<Omit<Deps, "
   const voiceNotes = overrides.voiceNotes ?? createVoiceNotes({ config, repo: r, llm, tts });
   const provisioner = overrides.provisioner ?? createVoiceProvisioner(config);
   const base = { config, db, repo: r, dial, llm, embedder, memory, tts, voiceNotes, provisioner };
-  return { ...base, engine: overrides.engine ?? createEngine(base) };
+  return { ...base, engine: overrides.engine ?? (config.demo ? createDemoEngine(base) : createEngine(base)) };
 }
 
 export function createApp(deps: Deps) {

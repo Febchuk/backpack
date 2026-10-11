@@ -456,3 +456,63 @@ code {
   padding: 1px 4px;
   border-radius: 4px;
 }
+
+/* ─── demo ─── */
+.demo .stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  flex-wrap: wrap;
+}
+.demo .stat strong {
+  font-size: 1.4rem;
+  color: var(--accent);
+}
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  font-size: 0.75rem;
+}
+.itinerary {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+.itinerary h4 {
+  margin: 0 0 8px;
+}
+.itinerary ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.itinerary li {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 8px;
+}
+.itinerary .when {
+  font-weight: 600;
+  color: var(--accent);
+}
+.itinerary p {
+  margin: 2px 0 4px;
+  color: var(--muted);
+}
+.itinerary .media {
+  margin-right: 10px;
+}
+.itinerary .badge {
+  margin-right: 10px;
+}

@@ -23,6 +23,12 @@ export interface Config {
   /** Bearer token for /api/*. Unset outside production → the API is open (local dev, tests). */
   adminToken: string | undefined;
   isProduction: boolean;
+  /** COACH_DEMO=1: Tolu's scripted demo replaces the Gemini engine and the call prompt. */
+  demo: boolean;
+  /** Multiplies every scripted demo delay; tests shrink it. */
+  demoDelayScale: number;
+  /** Real links shown in the demo itinerary; empty ones are left out. */
+  demoAssets: { brunchVenue: string; tiktokUrl: string; reviewsUrl: string; bikeRouteUrl: string };
 }
 
 export function loadConfig(overrides: Partial<Config> = {}): Config {
@@ -44,6 +50,14 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     pgliteDir: env.PGLITE_DIR || undefined,
     adminToken: env.ADMIN_TOKEN || undefined,
     isProduction: env.NODE_ENV === "production",
+    demo: env.COACH_DEMO === "1",
+    demoDelayScale: Number(env.DEMO_DELAY_SCALE ?? 1),
+    demoAssets: {
+      brunchVenue: env.DEMO_BRUNCH_VENUE || "the brunch spot",
+      tiktokUrl: env.DEMO_TIKTOK_URL || "",
+      reviewsUrl: env.DEMO_REVIEWS_URL || "",
+      bikeRouteUrl: env.DEMO_BIKE_ROUTE_URL || "",
+    },
     ...overrides,
   };
 }

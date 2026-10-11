@@ -11,6 +11,7 @@ import {
 import type { Deps } from "../app";
 import type { Agent } from "../db/repo";
 import { basePrompt, firstMessage, languageName, sampleText } from "../coach/persona";
+import { placeCoachCall } from "../coach/engine";
 
 class HttpError extends Error {
   constructor(
@@ -201,14 +202,47 @@ export function apiRouter(deps: Deps) {
       const learner = await learnerOr404(req.params.id);
       const agent = await agentOr404(learner.agent_id);
       if (!agent.dial_number_id || agent.setup_status !== "ready") throw new HttpError(409, "the agent has no ready number");
-      const lang = languageName(agent.language);
-      const { call_id } = await dial.placeCall({
-        from: agent.dial_number_id,
-        to: learner.phone,
-        language: agent.language,
-        instruction: `You are ${agent.name}, a friendly local from ${agent.persona_city}. Have a short, relaxed practice conversation in ${lang} at the learner's level.`,
-      });
-      res.json({ call_id });
+      res.json(await placeCoachCall(dial, agent, learner));
+    }),
+  );
+
+  // ─── demo (COACH_DEMO=1) ───
+  const demoOnly = () => {
+    if (!config.demo) throw new HttpError(404, "demo mode is off (set COACH_DEMO=1)");
+  };
+
+  r.get("/api/demo", (_req, res) => res.json({ enabled: config.demo }));
+
+  /** Starts Tolu's script for a phone number from scratch: any earlier run with that number is wiped. */
+  r.post(
+    "/api/demo/start",
+    wrap(async (req, res) => {
+      demoOnly();
+      const b = (req.body ?? {}) as Partial<AddLearnerBody> & { agent_id?: string };
+      const agent = await refreshNumber(await agentOr404(text(b.agent_id)));
+      if (agent.setup_status !== "ready") throw new HttpError(409, "the agent needs a ready number");
+      const phone = text(b.phone).replace(/[\s()-]/g, "");
+      if (!E164.test(phone)) throw new HttpError(400, "phone must be E.164, e.g. +447700900123");
+      const old = await repo.learnerByPhone(agent.id, phone);
+      if (old) {
+        await memory.forget(old.id);
+        await repo.deleteLearner(old.id);
+      }
+      const { learner } = await repo.upsertLearner(agent.id, phone, text(b.display_name) || null);
+      engine.startOnboarding(agent, learner).catch((e) => console.error(`[api] demo start ${learner.id} failed:`, (e as Error).message));
+      res.status(201).json(learner);
+    }),
+  );
+
+  /** Backup for the post-call texts when the call's end never reaches the coach. */
+  r.post(
+    "/api/learners/:id/demo/followup",
+    wrap(async (req, res) => {
+      demoOnly();
+      const learner = await learnerOr404(req.params.id);
+      const agent = await agentOr404(learner.agent_id);
+      engine.afterCall?.(agent, learner, `manual_${Date.now()}`).catch((e) => console.error(`[api] follow-up ${learner.id} failed:`, (e as Error).message));
+      res.status(202).json({ ok: true });
     }),
   );
 

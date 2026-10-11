@@ -1,7 +1,8 @@
 import type { Level } from "@backpack/shared/coach";
 import type { Deps } from "../app";
 import type { Agent, CoachEvent, Learner } from "../db/repo";
-import type { Engine, InboundMessage, Recall, ReplyInput, ReplyOutput } from "./contract";
+import type { DialClient, Engine, InboundMessage, Recall, ReplyInput, ReplyOutput } from "./contract";
+import { languageName } from "./persona";
 import { STEP_FACTS, nextStep, onboardingQuestion, welcomeText } from "./onboarding";
 import { buildSystemPrompt } from "./prompt";
 
@@ -27,10 +28,20 @@ export function parseLevel(text: string): Level | null {
 }
 
 /** The Dial number id an agent sends from. */
-function line(agent: Agent): string {
+export function line(agent: Agent): string {
   const from = agent.dial_number_id ?? agent.dial_number;
   if (!from) throw new Error(`agent ${agent.id} has no Dial number`);
   return from;
+}
+
+/** Rings the learner from the agent's line; the voice bridge takes the call from there. */
+export function placeCoachCall(dial: DialClient, agent: Agent, learner: Learner) {
+  return dial.placeCall({
+    from: line(agent),
+    to: learner.phone,
+    language: agent.language,
+    instruction: `You are ${agent.name}, a friendly local from ${agent.persona_city}. Have a short, relaxed practice conversation in ${languageName(agent.language)} at the learner's level.`,
+  });
 }
 
 const isAudio = (m: { contentType: string }) => m.contentType.toLowerCase().startsWith("audio/");

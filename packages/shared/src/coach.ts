@@ -72,8 +72,30 @@ export interface EventView {
   direction: "in" | "out";
   text: string;
   media_url: string | null;
-  feedback: { correction?: string | null; transcript?: string | null; notes?: string | null } | null;
+  feedback: {
+    correction?: string | null;
+    transcript?: string | null;
+    notes?: string | null;
+    /** Demo mode: the scripted beat this message opens. */
+    beat?: number;
+    /** Demo mode: the itinerary the console renders as a card. */
+    card?: ItineraryCard;
+  } | null;
   created_at: string;
+}
+
+export interface ItineraryStop {
+  time: string;
+  title: string;
+  detail: string;
+  /** Shown as a badge, e.g. "Demo example" or "Illustrative access — requires venue confirmation". */
+  badge?: string;
+  links: { label: string; url: string }[];
+}
+
+export interface ItineraryCard {
+  title: string;
+  stops: ItineraryStop[];
 }
 
 export interface FactView {

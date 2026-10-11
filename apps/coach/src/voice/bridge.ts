@@ -9,6 +9,7 @@ import type { Agent, Learner } from "../db/repo";
 import { parseDialFormat, parseElevenLabsFormat, transcode, type AudioFormat } from "./codec";
 import { createElevenLabsConnector, type AgentConnection, type AgentConnector, type ElevenLabsEvent } from "./elevenlabs";
 import { buildCallPrompt } from "./callPrompt";
+import { DEMO_CALL } from "../demo/script";
 import { runCallTool } from "./tools";
 
 /** Dial appends the call id: `wss://<PUBLIC_HOST>/dial/voice/<call_id>`. */
@@ -167,6 +168,9 @@ export function attachVoiceBridge(server: Server, deps: Deps, opts: VoiceBridgeO
     if (s.dial && s.dial.readyState === WebSocket.OPEN) s.dial.close(1000);
     console.log(`[voice] ${s.callId} ended (${reason}), ${s.turns.length} turns`);
     if (s.turns.length) void storeTranscript(s);
+    if (s.turns.length && deps.engine.afterCall) {
+      deps.engine.afterCall(s.agent, s.learner, s.callId).catch((e) => console.error(`[voice] ${s.callId} follow-up failed:`, errMsg(e)));
+    }
   }
 
   async function storeTranscript(s: CallSession) {
@@ -303,7 +307,7 @@ export function attachVoiceBridge(server: Server, deps: Deps, opts: VoiceBridgeO
       sendJson(s.dial, { type: "mark", name: END_MARK });
       later(s, goodbyeMs, () => sendEndCall(s));
     });
-    const { prompt, firstMessage } = buildCallPrompt(agent, learner, recall);
+    const { prompt, firstMessage } = deps.config.demo ? DEMO_CALL : buildCallPrompt(agent, learner, recall);
     conv.send({
       type: "conversation_initiation_client_data",
       conversation_config_override: {

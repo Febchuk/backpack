@@ -6,6 +6,7 @@ import {
   type DesignedPreview,
   type EventView,
   type FactView,
+  type ItineraryCard,
   type LearnerMemoryView,
   type LearnerView,
   type LibraryVoice,
@@ -438,12 +439,94 @@ function LearnerSection({ agent, selected, onSelect }: { agent: AgentView; selec
   );
 }
 
+// ─── Demo (COACH_DEMO=1) ──────────────────────────────────────────────────────
+
+function DemoPanel({ agent, learnerId, onStarted }: { agent: AgentView; learnerId: string | null; onStarted: (id: string) => void }) {
+  const [phone, setPhone] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const start = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const l = await api.startDemo(agent.id, phone.trim());
+      setNotice(`${agent.name} is texting ${l.phone}. Reply on the phone to move the script on.`);
+      onStarted(l.id);
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const followup = async () => {
+    if (!learnerId) return;
+    setError(null);
+    try {
+      await api.demoFollowup(learnerId);
+      setNotice("Follow-up notes and voice note on their way.");
+    } catch (err) {
+      setError(errorText(err));
+    }
+  };
+
+  return (
+    <section className="card demo" data-testid="demo-panel">
+      <h2>Demo</h2>
+      <form className="row" onSubmit={start}>
+        <input data-testid="demo-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Your phone number" />
+        <button data-testid="demo-start" className="primary" disabled={busy || !phone.trim() || agent.setup_status !== "ready"}>
+          {busy ? "Starting…" : "Start demo"}
+        </button>
+        <button type="button" className="ghost" onClick={followup} disabled={!learnerId} title="Use if the follow-up didn't arrive after the call">
+          Send follow-up
+        </button>
+      </form>
+      {notice && <p className="status">{notice}</p>}
+      <div className="stat" data-testid="demo-stat">
+        <span className="muted">Estimated practice workflow</span>
+        <strong>30 → 13 min</strong>
+        <span className="badge">Pending measurement</span>
+      </div>
+      <ErrorLine error={error} />
+    </section>
+  );
+}
+
 // ─── Memory ───────────────────────────────────────────────────────────────────
 
 function groupFacts(facts: FactView[]) {
   const by = new Map<string, FactView[]>();
   for (const f of facts) by.set(f.rel, [...(by.get(f.rel) ?? []), f]);
   return [...by.entries()];
+}
+
+function ItineraryCardView({ card }: { card: ItineraryCard }) {
+  return (
+    <div className="itinerary" data-testid="itinerary-card">
+      <h4>{card.title}</h4>
+      <ol>
+        {card.stops.map((s) => (
+          <li key={s.time}>
+            <span className="when">{s.time}</span>
+            <div>
+              <strong>{s.title}</strong>
+              <p>{s.detail}</p>
+              {s.badge && <span className="badge">{s.badge}</span>}
+              {s.links.map((l) => (
+                <a key={l.url} href={l.url} target="_blank" rel="noreferrer" className="media">
+                  {l.label} ↗
+                </a>
+              ))}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
 }
 
 function EventRow({ e }: { e: EventView }) {
@@ -453,6 +536,7 @@ function EventRow({ e }: { e: EventView }) {
       <div className="bubble">
         {e.channel !== "sms" && <span className="tag">{e.channel === "call" ? "call" : "voice note"}</span>}
         <span>{e.text}</span>
+        {fb?.card && <ItineraryCardView card={fb.card} />}
         {e.media_url && (
           <a href={e.media_url} target="_blank" rel="noreferrer" className="media">
             ▶ voice note
@@ -530,8 +614,11 @@ function App() {
   const [agentId, setAgentId] = useState<string | null>(null);
   const [learnerId, setLearnerId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [demo, setDemo] = useState(false);
+  const [learnersRev, setLearnersRev] = useState(0);
 
   useEffect(() => {
+    api.demoStatus().then((s) => setDemo(s.enabled), () => setDemo(false));
     api.listAgents().then(
       (list) => {
         setAgents(list);
@@ -577,9 +664,19 @@ function App() {
                 {languageName(agent.language)} · {agent.persona_city}
               </span>
             </div>
+            {demo && (
+              <DemoPanel
+                agent={agent}
+                learnerId={learnerId}
+                onStarted={(id) => {
+                  setLearnerId(id);
+                  setLearnersRev((n) => n + 1);
+                }}
+              />
+            )}
             <VoiceSection agent={agent} onChange={upsert} />
             <NumberSection agent={agent} onChange={upsert} />
-            <LearnerSection agent={agent} selected={learnerId} onSelect={setLearnerId} />
+            <LearnerSection key={learnersRev} agent={agent} selected={learnerId} onSelect={setLearnerId} />
             {learnerId && <MemoryPanel key={learnerId} learnerId={learnerId} />}
           </div>
         ) : (

@@ -111,6 +111,7 @@ export function dialWebhookRouter(deps: Deps) {
     const agent = await repo.agentByNumber(agentNumber);
     const learner = agent && (await repo.learnerByPhone(agent.id, learnerPhone));
     if (!learner) return { ignored: "unknown agent or learner" };
+    engine.afterCall?.(agent, learner, callId).catch((e) => log(`follow-up for ${callId} failed`, e));
     if (await repo.hasDialId(callId)) return { duplicate: true };
     if (await storeCall(callId, learner)) return { stored: callId };
     awaitingTranscript.set(callId, learner.id);

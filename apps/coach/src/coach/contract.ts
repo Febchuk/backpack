@@ -158,6 +158,8 @@ export interface Engine {
   handleInbound(agent: Agent, learner: Learner, msg: InboundMessage): Promise<void>;
   /** Sends the first onboarding text to a newly registered learner. */
   startOnboarding(agent: Agent, learner: Learner): Promise<void>;
+  /** Demo mode only: the follow-up once a practice call ends. Idempotent on `callId`. */
+  afterCall?(agent: Agent, learner: Learner, callId: string): Promise<void>;
 }
 
 export type { OnboardingStep };
