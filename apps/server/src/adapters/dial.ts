@@ -44,6 +44,22 @@ export function mapTranscriptTurns(turns: unknown): DialCallRecord["turns"] {
   return out;
 }
 
+/** Fallback for calls where Dial omits transcriptTurns: parse the flat "User: …" / "Agent: …" transcript. */
+export function parseFlatTranscript(transcript: unknown): DialCallRecord["turns"] {
+  if (typeof transcript !== "string") return [];
+  const out: DialCallRecord["turns"] = [];
+  for (const line of transcript.split("\n")) {
+    const m = /^(User|Agent):\s*(.*)$/.exec(line.trim());
+    if (m) {
+      const text = m[2].trim();
+      if (text && text !== "(unintelligible audio)") out.push({ speaker: m[1] === "Agent" ? "luna" : "player", text });
+    } else if (line.trim() && out.length) {
+      out[out.length - 1].text += ` ${line.trim()}`;
+    }
+  }
+  return out;
+}
+
 function errorMessage(body: unknown): string {
   if (body && typeof body === "object" && "error" in body) {
     const err = (body as { error: unknown }).error;
@@ -114,7 +130,7 @@ export function createRealDialAdapter(config: Config): DialAdapter {
     async getCall(callId) {
       const res = await dial("GET", `/v1/calls/${encodeURIComponent(callId)}`);
       const call = unwrap(res, "call");
-      return { id: typeof call.id === "string" ? call.id : callId, turns: mapTranscriptTurns(call.transcriptTurns) };
+      return { id: typeof call.id === "string" ? call.id : callId, turns: Array.isArray(call.transcriptTurns) ? mapTranscriptTurns(call.transcriptTurns) : parseFlatTranscript(call.transcript) };
     },
   };
 }

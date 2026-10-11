@@ -106,3 +106,16 @@ describe("L2 backend: Luna's call instructions", () => {
       expect(d).toContain(s);
   });
 });
+
+describe("L2 Dial transcript fallback", () => {
+  it("parses the flat transcript when Dial omits transcriptTurns (seen live)", async () => {
+    const { parseFlatTranscript } = await import("../../apps/server/src/adapters/dial");
+    const flat = "User: (unintelligible audio)\nUser: bonjour \nAgent: Répète après moi : bonjour.\nUser: ça va \nAgent: Bravo !  \n\nTa mission: un café.\n";
+    expect(parseFlatTranscript(flat)).toEqual([
+      { speaker: "player", text: "bonjour" },
+      { speaker: "luna", text: "Répète après moi : bonjour." },
+      { speaker: "player", text: "ça va" },
+      { speaker: "luna", text: "Bravo ! Ta mission: un café." },
+    ]);
+  });
+});
