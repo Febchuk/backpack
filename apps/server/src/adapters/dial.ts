@@ -99,6 +99,7 @@ export function createRealDialAdapter(config: Config): DialAdapter {
         fromNumberId,
         outboundInstruction: instruction,
         language: config.dialCallLanguage,
+        maxCallDurationSeconds: 90,
       });
       const id = unwrap(res, "call").id;
       if (typeof id !== "string") throw new Error("Dial POST /v1/calls: response has no call id");
