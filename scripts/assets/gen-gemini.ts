@@ -3,7 +3,7 @@
 // the STAGING dir art/gemini/ (never to apps/game/public/assets/; promote with
 // scripts/assets/promote-gemini.ts after a human has reviewed art/gemini/contact.png).
 //
-//   pnpm exec tsx scripts/assets/gen-gemini.ts [--only <key>[,<key>]] [--seed <n>] [--dry-run]
+//   pnpm exec tsx scripts/assets/gen-gemini.ts [--only <key>[,<key>]] [--seed <n>] [--ref] [--dry-run]
 //
 // Model: GEMINI_IMAGE_MODEL (default gemini-2.5-flash-image, via models.generateContent with IMAGE output).
 // An "imagen-*" model id switches to models.generateImages.
@@ -39,10 +39,11 @@ const SPRITE = 32;
 
 // ---- args ----------------------------------------------------------------------
 function parseArgs(argv: string[]) {
-  const out = { only: [] as string[], seed: undefined as number | undefined, dryRun: false };
+  const out = { only: [] as string[], seed: undefined as number | undefined, dryRun: false, ref: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--dry-run") out.dryRun = true;
+    else if (a === "--ref") out.ref = true;
     else if (a === "--only") out.only.push(...(argv[++i] ?? "").split(",").filter(Boolean));
     else if (a === "--seed") {
       out.seed = Number(argv[++i]);
@@ -58,7 +59,7 @@ interface ImageClient {
   models: {
     generateContent(p: {
       model: string;
-      contents: string;
+      contents: string | { role: string; parts: InlinePart[] }[];
       config: { responseModalities: string[]; imageConfig: { aspectRatio: string }; seed?: number };
     }): Promise<{ candidates?: { content?: { parts?: InlinePart[] }; finishReason?: string }[]; text?: string }>;
     generateImages(p: {
@@ -75,7 +76,29 @@ function imageClient(apiKey: string): ImageClient {
   return new GoogleGenAI({ apiKey });
 }
 
-async function generate(ai: ImageClient, model: string, a: AssetPrompt, seed: number | undefined): Promise<Buffer> {
+/** Exact sign text per background: image models misspell signs unless told every word. */
+const SIGNS: Record<string, string[]> = {
+  airport_bg: ["BIENVENUE À PARIS", "SIM", "SORTIE"],
+  street_bg: ["CAFÉ", "BOULANGERIE", "MARCHÉ", "HOSTEL", "< AÉROPORT"],
+  hostel_bg: ["RÉCEPTION", "< SORTIE"],
+};
+
+/**
+ * --ref: send the in-game background as a layout reference. The collision boxes and doors were traced
+ * from it, so the redraw must keep every object where it is.
+ */
+function refContents(a: AssetPrompt): { role: string; parts: InlinePart[] }[] {
+  const current = readFileSync(join(REPO, "apps/game/public/assets", `${a.key}.png`)).toString("base64");
+  const signs = (SIGNS[a.key] ?? []).map((t) => `"${t}"`).join(", ");
+  const text = `${a.prompt}
+
+LAYOUT REFERENCE: the attached image is the current game map. Players collide with the objects exactly where they are drawn in it.
+Repaint it in the style above, but keep the composition IDENTICAL: same straight top-down camera, same position, size and outline of every wall, counter, kiosk, building front, door, bench, seat, bed, table and plant. Do not add, remove, move or resize any solid object, and keep the open floor open. Richer detail, texture and lighting are welcome.
+Sign text must be spelled exactly, letter for letter, with accents: ${signs}. No other words or letters anywhere.`;
+  return [{ role: "user", parts: [{ inlineData: { mimeType: "image/png", data: current } }, { text }] }];
+}
+
+async function generate(ai: ImageClient, model: string, a: AssetPrompt, seed: number | undefined, ref = false): Promise<Buffer> {
   const aspectRatio = a.kind === "background" ? "16:9" : "1:1";
   if (model.startsWith("imagen")) {
     const res = await ai.models.generateImages({
@@ -89,7 +112,7 @@ async function generate(ai: ImageClient, model: string, a: AssetPrompt, seed: nu
   }
   const res = await ai.models.generateContent({
     model,
-    contents: a.prompt,
+    contents: ref && a.kind === "background" ? refContents(a) : a.prompt,
     config: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio }, ...(seed !== undefined ? { seed } : {}) },
   });
   const cand = res.candidates?.[0];
@@ -212,7 +235,7 @@ async function main() {
       let lastErr: unknown;
       for (let attempt = 1; attempt <= 2 && !raw; attempt++) {
         try {
-          raw = await generate(ai, model, p, args.seed);
+          raw = await generate(ai, model, p, args.seed, args.ref);
         } catch (e) {
           lastErr = e;
           console.warn(`  ${p.key}: attempt ${attempt} failed: ${(e as Error).message}`);

@@ -116,6 +116,7 @@ The game exposes `window.__backpack` in dev and test builds, so Playwright can d
   submitPhone(phone: string): Promise<void>; skipEvening(): Promise<void>;
   state(): PlayerState | null; enter(scene: string): void;
   doors(): { name: string; to: string; x: number; y: number }[];   // door triggers in the current scene
+  npcs(): { id: NpcId; x: number; y: number }[];                    // NPCs placed in the current scene (L3)
   ui(): { dialogue: string | null; phoneOpen: boolean; phoneFormOpen: boolean; messages: number;
           activeMission: string | null; backpack: string[]; marketUnlocked: boolean; skipEveningVisible: boolean } }
 ```

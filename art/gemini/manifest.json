@@ -17,7 +17,7 @@
       "model": "gemini-2.5-flash-image",
       "seed": null,
       "source": "1344x768",
-      "generatedAt": "2026-10-11T22:07:06.048Z",
+      "generatedAt": "2026-10-11T22:10:38.493Z",
       "prompt": "16-bit pixel art, top-down, limited palette, Paris café colors, no transparency.\n960x540 game background, drawn on a 480x270 pixel grid and scaled 2x with nearest neighbour.\nPalette only: #1b1c2e #2b3a67 #4a4e5a #8a8f98 #f2e6c9 #fff8e7 #c4623f #6b4226 #a0683a #b8323a #2f6b4f #e0a944 #f1c09a #8fb37a #6ea8c9 #5a2a32.\nScene: Paris airport arrival hall.\nLayout (pixel coordinates on the 960x540 image): a wall band across the top with a red \"BIENVENUE À PARIS\" sign board in the center; a green SIM card kiosk with a striped awning and counter around (180, 300); a red guide carpet running right; an exit doorway with a green \"SORTIE\" sign on the right edge around (900, 270); rows of waiting seats lower middle.\nLeave the walkable floor uncluttered. No characters, no UI, no text other than: \"BIENVENUE À PARIS\", \"SORTIE\"."
     },
     "street_bg": {
@@ -25,7 +25,7 @@
       "model": "gemini-2.5-flash-image",
       "seed": null,
       "source": "1344x768",
-      "generatedAt": "2026-10-11T22:07:13.429Z",
+      "generatedAt": "2026-10-11T22:10:46.158Z",
       "prompt": "16-bit pixel art, top-down, limited palette, Paris café colors, no transparency.\n960x540 game background, drawn on a 480x270 pixel grid and scaled 2x with nearest neighbour.\nPalette only: #1b1c2e #2b3a67 #4a4e5a #8a8f98 #f2e6c9 #fff8e7 #c4623f #6b4226 #a0683a #b8323a #2f6b4f #e0a944 #f1c09a #8fb37a #6ea8c9 #5a2a32.\nScene: One cobblestone Paris street, Haussmann facades along the top.\nLayout (pixel coordinates on the 960x540 image): a café with a red and white striped awning and terrace tables, left-middle around (200, 200); a navy boulangerie front with gold lettering around (450, 120); a locked iron market gate under a \"MARCHÉ\" sign around (760, 120); a brick hostel with a wooden door on the right edge around (900, 400); a wooden bench with a lamp post around (500, 380); an \"< AÉROPORT\" signpost on the left edge.\nLeave the walkable floor uncluttered. No characters, no UI, no text other than: \"MARCHÉ\", \"< AÉROPORT\"."
     },
     "hostel_bg": {
@@ -33,7 +33,7 @@
       "model": "gemini-2.5-flash-image",
       "seed": null,
       "source": "1344x768",
-      "generatedAt": "2026-10-11T22:07:20.866Z",
+      "generatedAt": "2026-10-11T22:10:53.565Z",
       "prompt": "16-bit pixel art, top-down, limited palette, Paris café colors, no transparency.\n960x540 game background, drawn on a 480x270 pixel grid and scaled 2x with nearest neighbour.\nPalette only: #1b1c2e #2b3a67 #4a4e5a #8a8f98 #f2e6c9 #fff8e7 #c4623f #6b4226 #a0683a #b8323a #2f6b4f #e0a944 #f1c09a #8fb37a #6ea8c9 #5a2a32.\nScene: Cozy backpacker hostel interior.\nLayout (pixel coordinates on the 960x540 image): wooden plank floor; a reception desk under a \"RÉCEPTION\" sign at top center; three bunk beds on the right; an exit doorway with a \"SORTIE\" sign on the left edge; a rug in the middle.\nLeave the walkable floor uncluttered. No characters, no UI, no text other than: \"RÉCEPTION\", \"SORTIE\"."
     },
     "player": {
