@@ -33,3 +33,17 @@ apps/console → /api: create agent, provision voice + ElevenLabs agent, buy num
 ## Dial is account-wide
 
 Webhooks and self-hosted audio apply to every number on the Dial account. Pointing them at the coach takes calls away from the game's Luna. Use a separate Dial account, or accept that.
+
+## Calls
+
+Dial self-hosted audio streams every call on the account to `wss://<PUBLIC_HOST>/dial/voice/<call_id>` (`voice/bridge.ts`). The bridge checks `X-Dial-Signature` against `DIAL_SELF_HOSTED_SECRET` (no secret: every call is refused), finds the agent that owns the Dial number (`to` on inbound, `from` on outbound) and the learner on the other end (registered if new), and opens that agent's ElevenLabs conversation. Calls on a number no agent owns, or whose agent has no `el_agent_id`, get `end_call`. Without `ELEVENLABS_API_KEY` the server still boots and hangs up every call.
+
+Each conversation starts with a `conversation_config_override`, so **every ElevenLabs agent must allow these overrides** (Agent → Security → Overrides): system prompt, first message, language and voice. Missing toggles make ElevenLabs reject the conversation.
+
+- `agent.prompt.prompt`: built by `voice/callPrompt.ts` from the persona city, language, learner level and `memory.recall(learner, "phone call")`.
+- `agent.first_message`: a short greeting in the target language with the learner's name.
+- `agent.language`: `elLanguage(agent.language)`; `tts.voice_id`: `agent.voice_id`.
+
+Client tools (`voice/tools.ts`, register them on the ElevenLabs agent as client tools that wait for a response): `get_learner_profile` (no parameters) and `remember_fact` (`rel`, one of `RELATIONS`; `object`, string). At call end the transcript is stored as one `call` event (`dial_id` = call id) and handed to `memory.remember`.
+
+Point Dial at the coach with `pnpm exec tsx scripts/coach/self-hosted.ts save|secret|activate [<url>]` (defaults to `PUBLIC_URL`); `disable` rolls back.
