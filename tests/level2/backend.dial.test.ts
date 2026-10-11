@@ -34,6 +34,7 @@ describe("L2 backend: real Dial adapter (fetch stubbed, no network)", () => {
       fromNumberId: "pn_1",
       outboundInstruction: "hi",
       language: "fr-FR",
+      maxCallDurationSeconds: 90,
     });
     expect((calls[0].init.headers as Record<string, string>).Authorization).toBe("Bearer sk_live_SECRET");
   });
