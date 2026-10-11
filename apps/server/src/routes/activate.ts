@@ -14,7 +14,7 @@ export function activateRouter(deps: Deps) {
     try {
       deps.repo.setPhone(player_id, phone);
       const { call_id } = await deps.adapters.dial.call({ to: phone, kind: "intro", instruction: introInstruction(), player_id });
-      deps.repo.addEvent(player_id, "call", { call_id, kind: "intro", status: "placed" });
+      deps.repo.addEvent(player_id, "call", { type: "placed", call_id, kind: "intro" });
       await deps.adapters.dial.sms({ to: phone, body: LUNA_COFFEE_SMS });
       deps.repo.addEvent(player_id, "sms", { body: LUNA_COFFEE_SMS });
       res.json({ ok: true, call_id });

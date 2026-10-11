@@ -163,6 +163,35 @@ export function repo(db: Db) {
       if (!s) return null;
       return { level: s.player.level, missions_done: s.missions.filter((m) => m.status === "done").length, city: s.player.city };
     },
+
+    /** L2 backend: the `call` event written when a call was placed (`{type:"placed", call_id, kind}`). */
+    findPlacedCall(callId: string): { player_id: string; kind: "intro" | "debrief" } | null {
+      const row = db
+        .prepare(
+          "SELECT player_id, json_extract(payload, '$.kind') AS kind FROM events WHERE source = 'call' AND json_extract(payload, '$.type') = 'placed' AND json_extract(payload, '$.call_id') = ? ORDER BY rowid DESC LIMIT 1",
+        )
+        .get(callId) as { player_id: string; kind: string } | undefined;
+      if (!row || (row.kind !== "intro" && row.kind !== "debrief")) return null;
+      return { player_id: row.player_id, kind: row.kind };
+    },
+
+    /** L2 backend: true once a Dial webhook delivery with this event id has been stored on a `call` event. */
+    hasDialEvent(eventId: string): boolean {
+      return !!db
+        .prepare("SELECT 1 FROM events WHERE source = 'call' AND json_extract(payload, '$.dial_event_id') = ? LIMIT 1")
+        .get(eventId);
+    },
+
+    /** L2 backend: the newest player whose phone matches (ignoring spaces, dashes, dots and parentheses). */
+    playerByPhone(phone: string): string | null {
+      const norm = (p: string) => p.replace(/[\s\-().]/g, "");
+      const want = norm(phone);
+      if (!want) return null;
+      const rows = db
+        .prepare("SELECT id, phone FROM players WHERE phone IS NOT NULL ORDER BY created_at DESC, rowid DESC")
+        .all() as { id: string; phone: string }[];
+      return rows.find((r) => norm(r.phone) === want)?.id ?? null;
+    },
   };
   return self;
 }
