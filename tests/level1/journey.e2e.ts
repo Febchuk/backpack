@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { API } from "../helpers/ports";
 import transcript from "@backpack/shared/fixtures/dialTranscript.debrief.json" with { type: "json" };
 
 const hooks = (page: Page) => ({
@@ -15,7 +16,7 @@ const hooks = (page: Page) => ({
 });
 
 test("L1 journey: the whole 5-minute demo, shallow, on mocks", async ({ page, request }) => {
-  await request.post("http://localhost:8787/dev/reset");
+  await request.post(`${API}/dev/reset`);
   const h = hooks(page);
 
   // 1. Title → Airport
@@ -52,7 +53,7 @@ test("L1 journey: the whole 5-minute demo, shallow, on mocks", async ({ page, re
   expect((await h.ui()).skipEveningVisible).toBe(true);
   await page.evaluate(() => window.__backpack!.skipEvening());
   const playerId = await page.evaluate(() => window.__backpack!.playerId());
-  await request.post("http://localhost:8787/dial/webhook", { data: { ...transcript, player_id: playerId } });
+  await request.post(`${API}/dial/webhook`, { data: { ...transcript, player_id: playerId } });
   await expect.poll(async () => (await h.ui()).marketUnlocked, { timeout: 4000 }).toBe(true);
 
   // 7. Hostel

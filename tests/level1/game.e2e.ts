@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import type { PlayerState } from "@backpack/shared";
 import fixtureState from "@backpack/shared/fixtures/playerState.new.json" with { type: "json" };
 
-const API = "http://localhost:8787";
+import { API } from "../helpers/ports";
 
 const h = (page: Page) => ({
   scene: () => page.evaluate(() => window.__backpack!.scene()),
