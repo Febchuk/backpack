@@ -1,4 +1,7 @@
 import type { PlayerState } from "@backpack/shared";
+import { playBuzz } from "../game/buzz";
+import { voiceMode } from "../game/pushToTalk";
+import { speech } from "../game/speech";
 import { store } from "../store";
 import type { BackpackUi } from "../testHooks";
 import { Backpack, masteredPhrases } from "./Backpack";
@@ -22,19 +25,47 @@ class Ui {
   readonly phoneForm = new PhoneForm(this.root);
   private scene = "Boot";
   private lastMessageCount: number | null = null;
+  /** How many times the phone buzzed for a new Luna text (test hook). */
+  buzzes = 0;
   /** Called when a new Luna text arrives (main wires this to a camera shake). */
   onBuzz: () => void = () => {};
 
   constructor() {
     store.subscribe((s) => this.onState(s));
+    this.hud.onPhoneIcon = () => this.phone.toggle();
     window.addEventListener("keydown", (e) => {
-      if (this.isTyping() || !GAMEPLAY_SCENES.has(this.scene)) return;
+      if (this.isTyping() || !GAMEPLAY_SCENES.has(this.scene) || e.repeat) return;
       const key = e.key.toLowerCase();
       if (key === "p") this.phone.toggle();
       if (key === "b") this.backpack.toggle();
       if (key === "escape") this.dialogue.close();
+      if (key === "t") {
+        voiceMode.textMode = !voiceMode.textMode;
+        this.toast(voiceMode.textMode ? "Text mode: SPACE opens a text box" : "Voice mode: hold SPACE and speak");
+        this.renderKeys();
+      }
+      if (key === "m") {
+        this.toast(speech.toggleMute() ? "Voices muted" : "Voices on");
+        this.renderKeys();
+      }
     });
     this.render();
+  }
+
+  renderKeys() {
+    this.hud.renderKeys({ textMode: voiceMode.textMode, muted: speech.muted });
+  }
+
+  setRecording(on: boolean) {
+    this.hud.setRecording(on);
+  }
+
+  get recording() {
+    return !this.hud.rec.classList.contains("hidden");
+  }
+
+  callBanner(message: string, ms: number) {
+    this.hud.banner(message, ms);
   }
 
   setScene(key: string) {
@@ -47,8 +78,8 @@ class Ui {
     return document.activeElement instanceof HTMLInputElement;
   }
 
-  toast(message: string) {
-    this.hud.toast(message);
+  toast(message: string, ms?: number) {
+    this.hud.toast(message, ms);
   }
 
   snapshot(): BackpackUi {
@@ -68,7 +99,10 @@ class Ui {
   private onState(s: PlayerState) {
     const count = s.messages.length;
     if (this.lastMessageCount !== null && count > this.lastMessageCount) {
+      this.buzzes += 1;
       this.phone.buzz();
+      this.hud.buzzIcon();
+      playBuzz();
       this.toast("Bzzz — new text from Luna (press P)");
       this.onBuzz();
     }

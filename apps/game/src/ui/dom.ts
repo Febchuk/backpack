@@ -21,7 +21,7 @@ const CSS = `
 #ui .dialogue .hint { color: #a5ffd6; font-size: 12px; margin-top: 4px; }
 #ui .phone { right: 12px; top: 56px; width: 240px; max-height: 330px; overflow-y: auto; background: #1e1830; }
 #ui .phone .msg { background: #3d6b8f; padding: 4px 6px; margin: 4px 0; border: 2px solid #000; }
-#ui .backpack { left: 12px; top: 60px; width: 280px; }
+#ui .backpack { left: 12px; top: 88px; width: 280px; }
 #ui .backpack .item { border: 2px solid #000; background: #6b4f2a; padding: 4px 6px; margin: 4px 0; }
 #ui .phoneform { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 340px; }
 #ui .phoneform form { display: flex; gap: 6px; margin-top: 8px; }
@@ -30,6 +30,14 @@ const CSS = `
 #ui .talk input { width: calc(100% - 18px); margin-top: 6px; }
 #ui .toast { position: absolute; left: 50%; top: 56px; transform: translateX(-50%); background: #000; padding: 6px 12px;
   border: 3px solid #ffd6a5; }
+#ui .phoneicon { left: 8px; top: 48px; padding: 2px 8px; font-size: 18px; cursor: pointer; }
+#ui .banner { position: absolute; left: 50%; top: 96px; transform: translateX(-50%); background: #2f6b4f; padding: 8px 14px;
+  border: 3px solid #fff8e7; box-shadow: 4px 4px 0 #000; font-size: 16px; animation: ring 0.9s ease-in-out infinite; }
+#ui .rec { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: #000; color: #ff4d4d;
+  padding: 4px 12px; border: 3px solid #ff4d4d; letter-spacing: 2px; animation: rec 0.8s ease-in-out infinite; }
+@keyframes rec { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes ring { 0%, 100% { transform: translateX(-50%) rotate(0); } 10% { transform: translateX(-50%) rotate(-2deg); }
+  20% { transform: translateX(-50%) rotate(2deg); } 30% { transform: translateX(-50%) rotate(0); } }
 #ui .buzz { animation: buzz 0.12s linear 0s 5; }
 @keyframes buzz { 0% { transform: translateX(-3px); } 50% { transform: translateX(3px); } 100% { transform: none; } }
 `;

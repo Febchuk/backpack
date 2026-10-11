@@ -20,6 +20,41 @@ export interface BackpackHooks {
   enter(scene: string): void;
   doors(): Door[];
   ui(): BackpackUi;
+  /** L2: player center and its feet collision box, or null outside a gameplay scene. */
+  player(): PlayerPos | null;
+  /** L2: the current scene's collision boxes (edges in background pixels). */
+  colliders(): Collider[];
+  /** L2: voice and juice state. */
+  fx(): BackpackFx;
+}
+
+export interface PlayerPos {
+  x: number;
+  y: number;
+  body: { x1: number; y1: number; x2: number; y2: number };
+}
+
+export interface Collider {
+  label: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export interface BackpackFx {
+  /** ● REC is showing (SPACE held near an NPC, mic mode). */
+  recording: boolean;
+  /** The NPC the thinking bubble is over, while a turn is in flight. */
+  thinking: string | null;
+  /** Times the phone buzzed for a new Luna text. */
+  buzzes: number;
+  /** T: SPACE opens the text box instead of the mic. */
+  textMode: boolean;
+  /** M: replies are not spoken. */
+  muted: boolean;
+  /** Replies handed to speechSynthesis. */
+  spoken: number;
 }
 
 export interface BackpackUi {
@@ -43,8 +78,17 @@ export interface HookDeps {
   submitPhone(phone: string): Promise<void>;
   skipEvening(): Promise<void>;
   /** The active gameplay scene, if any. */
-  world(): { teleport(x: number, y: number): void; doors(): Door[] } | undefined;
+  world():
+    | {
+        teleport(x: number, y: number): void;
+        doors(): Door[];
+        colliders(): Collider[];
+        playerPos(): PlayerPos;
+        thinkingBubble(): string | null;
+      }
+    | undefined;
   ui(): BackpackUi;
+  fx(): Omit<BackpackFx, "thinking">;
 }
 
 declare global {
@@ -73,5 +117,8 @@ export function installTestHooks(game: Phaser.Game, deps: HookDeps) {
     },
     doors: () => deps.world()?.doors() ?? [],
     ui: deps.ui,
+    player: () => deps.world()?.playerPos() ?? null,
+    colliders: () => deps.world()?.colliders() ?? [],
+    fx: () => ({ ...deps.fx(), thinking: deps.world()?.thinkingBubble() ?? null }),
   };
 }

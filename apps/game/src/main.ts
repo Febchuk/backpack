@@ -6,6 +6,8 @@ import { Street } from "./scenes/Street";
 import { Hostel } from "./scenes/Hostel";
 import { activeWorld } from "./scenes/WorldScene";
 import { activate, skipEvening, talk } from "./game/actions";
+import { voiceMode } from "./game/pushToTalk";
+import { speech } from "./game/speech";
 import { ui } from "./ui";
 import { installTestHooks } from "./testHooks";
 
@@ -34,4 +36,11 @@ installTestHooks(game, {
   skipEvening,
   world: () => activeWorld(game),
   ui: () => ui.snapshot(),
+  fx: () => ({
+    recording: ui.recording,
+    buzzes: ui.buzzes,
+    textMode: voiceMode.textMode,
+    muted: speech.muted,
+    spoken: speech.spoken,
+  }),
 });
