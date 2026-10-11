@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { MISSIONS, MISSION_FOR_NPC, MissionKey, NpcId } from "@backpack/shared";
+import { ECONOMY, MISSIONS, MISSION_FOR_NPC, MissionKey, NpcId } from "@backpack/shared";
 import type { Deps } from "../app";
 import { PERSONAS } from "../npc/personas";
 import { OPEN_PLAY_PHRASES } from "../npc/mockGrader";
@@ -47,7 +47,10 @@ export function npcRouter(deps: Deps) {
       const turn = await deps.adapters.gemini.npcTurn(input);
 
       deps.repo.logTurn(playerId, turn.phrases_used, turn.phrases_missed);
-      if (mission && turn.mission_complete === true) deps.repo.completeMission(playerId, mission.key);
+      // L4 economy: a fumble in front of an impatient or cold NPC costs euros; completion charges and sets stars.
+      if (turn.phrases_missed.length > 0 && (turn.mood === "impatient" || turn.mood === "cold"))
+        deps.repo.spendEuros(playerId, ECONOMY.fumblePenalty);
+      if (mission && turn.mission_complete === true) deps.repo.settleMission(playerId, mission.key);
       else if (mission && turn.hint) deps.repo.addHint(playerId, mission.key);
       deps.repo.addEvent(playerId, "game", { type: "npc_turn", npc: npc.data, mission_key: mission?.key ?? null, turn });
       res.json(turn);
