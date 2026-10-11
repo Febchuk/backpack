@@ -21,7 +21,7 @@ per-call overrides, so the dashboard agent is a thin shell. Create it once by ha
 
 ## 2. Security → Overrides
 
-Enable exactly these four toggles; leave the others off:
+Enable these four toggles (plus Voice speed if you set `ELEVENLABS_SPEED_OVERRIDE=1`); leave the others off:
 
 | Toggle | Override the server sends |
 | --- | --- |
@@ -29,6 +29,7 @@ Enable exactly these four toggles; leave the others off:
 | First message | `agent.first_message` (the script's opening line) |
 | Language | `agent.language` = `fr` |
 | Voice ID | `tts.voice_id` = `ELEVENLABS_VOICE_ID` (only when set) |
+| Voice speed (optional) | `tts.speed` = 0.85 for level-1 players, only when `ELEVENLABS_SPEED_OVERRIDE=1` |
 
 A disabled override makes ElevenLabs reject the conversation at start.
 

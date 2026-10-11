@@ -49,6 +49,23 @@ export const OPEN_PLAY_PHRASES: Record<NpcId, string[]> = {
   theo: ["salut", "ça roule ?", "c'est ouf", "trop bien", "à plus"],
 };
 
+/** Level-1 gestures: the dialogue box shows a leading `*...*` in italics (CONTRACT.md, Level 4 adaptive NPCs). */
+export const GESTURES: Record<NpcId, string> = {
+  clerk: "*points at the SIM cards*",
+  barista: "*points at the menu*",
+  girard: "*pats his dog and smiles*",
+  margaux: "*taps the counter*",
+  ines: "*points down the street*",
+  theo: "*strums a chord*",
+};
+
+/** At level 1, prefix a stage direction to the English hint (unless it already has one). */
+export function withGesture(hint: string, npcId: string | undefined, level: number): string {
+  const gesture = npcId && npcId in GESTURES ? GESTURES[npcId as NpcId] : null;
+  if (level > 1 || !gesture || hint.trimStart().startsWith("*")) return hint;
+  return `${gesture} ${hint}`;
+}
+
 /** Deterministic grader for MOCK_GEMINI: case/accent-insensitive whole-word match per CONTRACT.md. */
 export function mockGrade(input: Omit<NpcTurnInput, "npcId"> & { npcId?: string }): NpcTurnResponse {
   const npc = input.npcId as NpcId | undefined;
@@ -66,7 +83,7 @@ export function mockGrade(input: Omit<NpcTurnInput, "npcId"> & { npcId?: string 
   const opener = input.targetPhrases[0] ?? "bonjour";
   return {
     reply_fr: line.fr,
-    reply_en_hint: line.en,
+    reply_en_hint: withGesture(line.en, npc, input.level),
     heard: text,
     phrases_used: used,
     phrases_missed: missed,

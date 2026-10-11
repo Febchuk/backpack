@@ -38,3 +38,21 @@ Voice call notes:
 - To hang up, say your goodbye, then use the end_call tool.`;
   return { prompt, firstMessage };
 }
+
+/** ElevenLabs `tts.speed` for level-1 players (1.0 is normal; the API accepts 0.7 to 1.2). */
+export const LEVEL1_TTS_SPEED = 0.85;
+
+/**
+ * The `tts` conversation override: the voice id when set, plus a slower speed for level-1 players when the
+ * speed override is enabled on the agent. Undefined when there is nothing to override.
+ */
+export function lunaTtsOverride(opts: {
+  voiceId?: string | null;
+  level?: number;
+  speedOverride?: boolean;
+}): { voice_id?: string; speed?: number } | undefined {
+  const tts: { voice_id?: string; speed?: number } = {};
+  if (opts.voiceId) tts.voice_id = opts.voiceId;
+  if (opts.speedOverride && (opts.level ?? 1) <= 1) tts.speed = LEVEL1_TTS_SPEED;
+  return Object.keys(tts).length ? tts : undefined;
+}
