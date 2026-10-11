@@ -1,0 +1,9 @@
+# The phone coach (apps/coach). ffmpeg converts iPhone voice notes (CAF/AMR) for Gemini.
+FROM node:22-slim
+RUN corepack enable && apt-get update && apt-get install -y --no-install-recommends python3 make g++ ffmpeg && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY . .
+RUN pnpm install --frozen-lockfile
+ENV NODE_ENV=production PGLITE_DIR=/data/pglite
+EXPOSE 8788
+CMD ["sh", "-c", "COACH_PORT=${PORT:-8788} exec pnpm --filter @backpack/coach start"]

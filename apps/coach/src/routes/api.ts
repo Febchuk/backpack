@@ -149,10 +149,17 @@ export function apiRouter(deps: Deps) {
     "/api/agents/:id/number",
     wrap(async (req, res) => {
       const agent = await agentOr404(req.params.id);
-      const b = (req.body ?? {}) as Partial<BuyNumberBody>;
+      const b = (req.body ?? {}) as Partial<BuyNumberBody> & { number_id?: string };
+      if (agent.dial_number_id) throw new HttpError(409, "this agent already has a number");
+      // A number the account already owns: attach it instead of buying one.
+      const existing = text(b.number_id);
+      if (existing) {
+        const n = await dial.getNumber(existing);
+        if (await repo.agentByNumber(n.id)) throw new HttpError(409, "that number belongs to another agent");
+        return void res.json(await repo.updateAgent(agent.id, { dial_number_id: n.id, dial_number: n.number, setup_status: n.setupStatus }));
+      }
       const consent = text(b.consent);
       if (!consent) throw new HttpError(400, "consent is required to buy a number");
-      if (agent.dial_number_id) throw new HttpError(409, "this agent already has a number");
       const n = await dial.purchaseNumber({
         consent,
         imessage: b.imessage === true,
