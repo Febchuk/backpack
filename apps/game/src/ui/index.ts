@@ -5,6 +5,7 @@ import { speech } from "../game/speech";
 import { store } from "../store";
 import type { BackpackUi } from "../testHooks";
 import { Backpack, masteredPhrases } from "./Backpack";
+import { DaySummary } from "./DaySummary";
 import { Dialogue } from "./Dialogue";
 import { uiRoot } from "./dom";
 import { Hud } from "./Hud";
@@ -23,8 +24,10 @@ class Ui {
   readonly dialogue = new Dialogue(this.root);
   readonly talkInput = new TalkInput(this.root);
   readonly phoneForm = new PhoneForm(this.root);
+  readonly daySummary = new DaySummary(this.root);
   private scene = "Boot";
   private lastMessageCount: number | null = null;
+  private playerId: string | null = null;
   /** How many times the phone buzzed for a new Luna text (test hook). */
   buzzes = 0;
   /** Called when a new Luna text arrives (main wires this to a camera shake). */
@@ -38,7 +41,10 @@ class Ui {
       const key = e.key.toLowerCase();
       if (key === "p") this.phone.toggle();
       if (key === "b") this.backpack.toggle();
-      if (key === "escape") this.dialogue.close();
+      if (key === "escape") {
+        this.dialogue.close();
+        this.daySummary.toggle(false);
+      }
       if (key === "t") {
         voiceMode.textMode = !voiceMode.textMode;
         this.toast(voiceMode.textMode ? "Text mode: SPACE opens a text box" : "Voice mode: hold SPACE and speak");
@@ -69,6 +75,8 @@ class Ui {
   }
 
   setScene(key: string) {
+    // The day summary greets you at the hostel and stays behind when you leave.
+    if (key !== this.scene) this.daySummary.toggle(key === "Hostel");
     this.scene = key;
     this.render();
   }
@@ -97,6 +105,12 @@ class Ui {
   }
 
   private onState(s: PlayerState) {
+    if (s.player.id !== this.playerId) {
+      // A new player (title screen after /dev/reset): nothing they have yet is "new".
+      this.playerId = s.player.id;
+      this.lastMessageCount = null;
+      this.backpack.reset();
+    }
     const count = s.messages.length;
     if (this.lastMessageCount !== null && count > this.lastMessageCount) {
       this.buzzes += 1;
@@ -116,7 +130,9 @@ class Ui {
     this.hud.setVisible(GAMEPLAY_SCENES.has(this.scene));
     this.hud.render(s, this.scene === "Street" && cafeDone);
     this.phone.render(s);
-    this.backpack.render(s);
+    this.daySummary.render(s);
+    const added = this.backpack.render(s);
+    if (added.length) this.toast(`🎒 New in your backpack: ${added.join(", ")}`, 3500);
   }
 }
 

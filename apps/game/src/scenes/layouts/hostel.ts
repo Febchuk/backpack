@@ -3,7 +3,8 @@ import type { SceneLayout } from "./types";
 /** hostel_bg.png: lockers and reception along the back wall, three beds on the right, exit door on the left. */
 export const hostelLayout: SceneLayout = {
   doors: [{ name: "street", to: "Street", x: 26, y: 292, w: 40, h: 96 }],
-  npcs: [],
+  // Inès works the reception desk; talk to her from the front of it.
+  npcs: [{ id: "ines", x: 480, y: 164, color: 0xe9c46a }],
   colliders: [
     { label: "back wall", x1: 0, y1: 0, x2: 960, y2: 110 },
     { label: "left wall", x1: 0, y1: 0, x2: 16, y2: 540 },

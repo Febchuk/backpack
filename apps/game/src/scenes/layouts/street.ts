@@ -15,6 +15,8 @@ export const streetLayout: SceneLayout = {
     { id: "barista", x: 250, y: 200, color: 0x9c6644 },
     { id: "margaux", x: 470, y: 196, color: 0xf4a261 },
     { id: "girard", x: 500, y: 368, color: 0x6d6875 },
+    // Busking on the corner of the hostel block.
+    { id: "theo", x: 812, y: 252, color: 0x2a9d8f },
   ],
   colliders: [
     { label: "café", x1: 0, y1: 0, x2: 352, y2: 150 },

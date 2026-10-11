@@ -1,4 +1,5 @@
 import type { NpcTurnResponse } from "@backpack/shared";
+import { splitStageDirection } from "../voice/ttsRate";
 import { el, setVisible } from "./dom";
 
 const TYPE_MS = 22;
@@ -8,7 +9,7 @@ export class Dialogue {
   readonly root = el("div", "panel dialogue hidden");
   private name = el("h3");
   private fr = el("div", "fr");
-  private en = el("div", "small");
+  private en = el("div", "small en");
   private hint = el("div", "hint");
   private timer: number | undefined;
   /** Full text of the current line (what the box is saying), or null when closed / thinking. */
@@ -37,7 +38,9 @@ export class Dialogue {
   say(speaker: string, fr: string, en = "", hint = "") {
     this.open(speaker);
     this.text = fr;
-    this.en.textContent = en;
+    // Adaptive NPCs: a leading *stage direction* (beginners get gestures) shows in italics.
+    const { direction, text } = splitStageDirection(en);
+    this.en.replaceChildren(...(direction ? [el("em", "stage", direction), ` ${text}`] : [text]));
     this.hint.textContent = hint;
     let i = 0;
     this.timer = window.setInterval(() => {

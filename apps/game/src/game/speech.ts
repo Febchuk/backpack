@@ -1,6 +1,7 @@
 /** Speaks NPC replies aloud with the browser's French voice. M mutes. */
 
-const RATE = 0.95;
+import { ttsRateForLevel } from "../voice/ttsRate";
+
 let muted = false;
 let spoken = 0;
 
@@ -36,13 +37,13 @@ export const speech = {
   get spoken() {
     return spoken;
   },
-  speak(text: string) {
+  speak(text: string, level?: number) {
     const s = synth();
     if (!s || muted || !text) return;
     s.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "fr-FR";
-    u.rate = RATE;
+    u.rate = ttsRateForLevel(level);
     const voice = pickFrenchVoice(s.getVoices());
     if (voice) u.voice = voice;
     s.speak(u);

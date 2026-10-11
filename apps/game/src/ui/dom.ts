@@ -14,6 +14,21 @@ const CSS = `
 #ui input { font: inherit; background: #fff7e8; color: #2b2140; border: 3px solid #000; padding: 4px 6px; outline: none; }
 
 #ui .hud { left: 8px; top: 8px; padding: 6px 10px; }
+#ui .hud .euros { display: inline-block; color: #ffd166; }
+#ui .hud .euros.flash { animation: coin 0.6s ease-out; }
+@keyframes coin { 0% { transform: scale(1.5); color: #ff6b6b; } 100% { transform: none; } }
+#ui .hud .delta { display: inline-block; animation: rise 2.5s ease-out forwards; }
+#ui .hud .delta.down { color: #ff6b6b; }
+#ui .hud .delta.up { color: #a5ffd6; }
+@keyframes rise { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-10px); opacity: 0; } }
+#ui .hud .stars { margin-left: 12px; color: #ffd166; }
+#ui .hud .star + .star { margin-left: 10px; }
+#ui .dialogue .stage { color: #ffd6a5; }
+#ui .summary { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 360px; }
+#ui .summary .row { display: flex; justify-content: space-between; margin: 3px 0; }
+#ui .summary .stars { color: #ffd166; letter-spacing: 2px; }
+#ui .summary .tomorrow { margin-top: 8px; }
+#ui .summary button { margin-top: 10px; }
 #ui .keys { right: 8px; bottom: 8px; padding: 4px 8px; }
 #ui .skip { position: absolute; right: 8px; top: 8px; pointer-events: auto; }
 #ui .dialogue { left: 16px; right: 16px; bottom: 12px; min-height: 84px; }
@@ -23,6 +38,9 @@ const CSS = `
 #ui .phone .msg { background: #3d6b8f; padding: 4px 6px; margin: 4px 0; border: 2px solid #000; }
 #ui .backpack { left: 12px; top: 88px; width: 280px; }
 #ui .backpack .item { border: 2px solid #000; background: #6b4f2a; padding: 4px 6px; margin: 4px 0; }
+#ui .backpack .item.new { background: #a8742f; animation: pop 0.5s ease-out, glow 1s ease-in-out 0.5s 3; }
+@keyframes pop { 0% { transform: scale(0.4); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: none; } }
+@keyframes glow { 0%, 100% { box-shadow: 0 0 0 #ffd6a5; } 50% { box-shadow: 0 0 10px 3px #ffd6a5; } }
 #ui .phoneform { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 340px; }
 #ui .phoneform form { display: flex; gap: 6px; margin-top: 8px; }
 #ui .phoneform input { flex: 1; }
