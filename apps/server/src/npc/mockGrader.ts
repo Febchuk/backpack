@@ -1,5 +1,6 @@
-import { normalizePhrase, type NpcId, type NpcTurnResponse } from "@backpack/shared";
+import { type NpcId, type NpcTurnResponse } from "@backpack/shared";
 import type { NpcTurnInput } from "../adapters/types";
+import { saysPhrase } from "./grading";
 
 type Line = { fr: string; en: string };
 
@@ -31,40 +32,69 @@ const LINES: Record<NpcId, { done: Line; more: Line }> = {
   },
 };
 
-/** Phrases logged for open-play NPCs (no mission). */
+/**
+ * Target phrases for open-play NPCs (no mission). Each turn logs them as used or missed, so they feed Luna's
+ * debrief; keep each list short and on the NPC's topic.
+ */
 export const OPEN_PLAY_PHRASES: Record<NpcId, string[]> = {
   clerk: ["bonjour", "merci"],
   barista: ["bonjour", "merci"],
-  girard: ["bonjour", "ça va", "merci"],
-  margaux: ["bonjour", "s'il vous plaît", "merci"],
-  ines: ["bonjour", "merci", "où est"],
-  theo: ["salut", "ça va", "merci"],
+  // Beginner small talk on the bench.
+  girard: ["bonjour", "ça va ?", "je m'appelle", "il fait beau", "au revoir"],
+  // Boulangerie etiquette, ordering and haggling.
+  margaux: ["bonjour", "une baguette", "un croissant", "c'est combien ?", "c'est trop cher"],
+  // Hostel desk: directions and what to do next.
+  ines: ["bonjour", "où est", "c'est loin ?", "à gauche", "à droite"],
+  // Casual French, slang and verlan.
+  theo: ["salut", "ça roule ?", "c'est ouf", "trop bien", "à plus"],
 };
 
-/** Deterministic grader for MOCK_GEMINI: case/accent-insensitive substring match per CONTRACT.md. */
+/** Level-1 gestures: the dialogue box shows a leading `*...*` in italics (CONTRACT.md, Level 4 adaptive NPCs). */
+export const GESTURES: Record<NpcId, string> = {
+  clerk: "*points at the SIM cards*",
+  barista: "*points at the menu*",
+  girard: "*pats his dog and smiles*",
+  margaux: "*taps the counter*",
+  ines: "*points down the street*",
+  theo: "*strums a chord*",
+};
+
+/** At level 1, prefix a stage direction to the English hint (unless it already has one). */
+export function withGesture(hint: string, npcId: string | undefined, level: number): string {
+  const gesture = npcId && npcId in GESTURES ? GESTURES[npcId as NpcId] : null;
+  if (level > 1 || !gesture || hint.trimStart().startsWith("*")) return hint;
+  return `${gesture} ${hint}`;
+}
+
+/** Deterministic grader for MOCK_GEMINI: case/accent-insensitive whole-word match per CONTRACT.md. */
 export function mockGrade(input: Omit<NpcTurnInput, "npcId"> & { npcId?: string }): NpcTurnResponse {
   const npc = input.npcId as NpcId | undefined;
   const text = input.text ?? "";
-  const heardNorm = normalizePhrase(text);
   const used: string[] = [];
   const missed: string[] = [];
-  for (const phrase of input.targetPhrases) {
-    (heardNorm.includes(normalizePhrase(phrase)) ? used : missed).push(phrase);
-  }
+  for (const phrase of input.targetPhrases) (saysPhrase(text, phrase) ? used : missed).push(phrase);
   const missingRequired = input.requiredPhrases.filter((p) => !used.includes(p));
   const complete = input.missionGoal ? missingRequired.length === 0 : null;
-  const good = complete ?? used.length > 0;
+  // Margaux will not serve anyone who skipped "bonjour".
+  const snubbed = npc === "margaux" && !saysPhrase(text, "bonjour");
+  const good = !snubbed && (complete ?? used.length > 0);
   const lines = npc && npc in LINES ? LINES[npc] : { done: { fr: "D'accord !", en: "Okay!" }, more: { fr: "Pardon ?", en: "Sorry?" } };
   const line = good ? lines.done : lines.more;
-  const saidBonjour = heardNorm.includes("bonjour");
+  const opener = input.targetPhrases[0] ?? "bonjour";
   return {
     reply_fr: line.fr,
-    reply_en_hint: line.en,
+    reply_en_hint: withGesture(line.en, npc, input.level),
     heard: text,
     phrases_used: used,
     phrases_missed: missed,
-    hint: missingRequired.length ? `Try: ${missingRequired[0]}` : good ? "Très bien! Keep going." : "Try: bonjour",
+    hint: missingRequired.length
+      ? `Try: ${missingRequired[0]}`
+      : snubbed
+        ? "Say bonjour first!"
+        : good
+          ? "Très bien! Keep going."
+          : `Try: ${opener}`,
     mission_complete: complete,
-    mood: npc === "margaux" && !saidBonjour ? "cold" : "patient",
+    mood: snubbed ? "cold" : "patient",
   };
 }

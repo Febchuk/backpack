@@ -648,6 +648,82 @@ function margaux() {
   return finish(c);
 }
 
+function ines() {
+  const c = new Canvas(32, 32);
+  body(c, { hair: "woodDark", shirt: "sky", pants: "navy" });
+  // dark curly hair: bumpy crown and volume past the ears
+  c.rect(9, 3, 14, 4, "woodDark");
+  c.px(10, 2, "woodDark");
+  c.px(13, 2, "woodDark");
+  c.px(16, 2, "woodDark");
+  c.px(19, 2, "woodDark");
+  c.px(21, 2, "woodDark");
+  c.rect(8, 7, 3, 7, "woodDark");
+  c.rect(21, 7, 3, 7, "woodDark");
+  c.px(9, 14, "woodDark");
+  c.px(22, 14, "woodDark");
+  c.px(12, 4, "wood");
+  c.px(18, 4, "wood");
+  face(c);
+  // round gold glasses over the eyes
+  c.rect(12, 9, 3, 1, "gold");
+  c.rect(17, 9, 3, 1, "gold");
+  c.px(15, 10, "gold");
+  c.px(16, 10, "gold");
+  // green hostel lanyard and paper key card
+  c.px(13, 15, "green");
+  c.px(18, 15, "green");
+  c.px(14, 16, "green");
+  c.px(17, 16, "green");
+  c.rect(15, 17, 2, 1, "green");
+  c.rect(14, 18, 4, 3, "paper");
+  c.rect(15, 19, 2, 1, "red");
+  // brass room key in her right hand
+  c.rect(22, 22, 2, 2, "gold");
+  c.px(23, 24, "gold");
+  c.px(23, 25, "gold");
+  return finish(c);
+}
+
+function theo() {
+  const c = new Canvas(32, 32);
+  // open guitar case on the ground behind him, to the left, with a coin
+  c.rect(0, 24, 9, 5, "ink");
+  c.rect(1, 25, 7, 3, "plum");
+  c.px(3, 26, "gold");
+  c.px(6, 25, "gold");
+  body(c, { hair: "gold", shirt: "cream", pants: "navy", shoes: "ink" });
+  // plum beanie with a fold, shaggy blond hair below
+  c.rect(10, 1, 12, 4, "plum");
+  c.rect(10, 4, 12, 1, "red");
+  c.px(15, 0, "plum");
+  c.px(16, 0, "plum");
+  c.rect(9, 5, 2, 6, "gold");
+  c.rect(21, 5, 2, 6, "gold");
+  c.px(12, 5, "gold");
+  c.px(19, 5, "gold");
+  // marinière stripes on the shirt
+  c.rect(11, 17, 10, 1, "navy");
+  c.rect(11, 20, 10, 1, "navy");
+  face(c);
+  // acoustic guitar slung across the body: neck up-right, body low-left
+  for (let i = 0; i < 9; i++) c.rect(19 + i, 19 - i, 2, 1, "woodDark");
+  c.rect(27, 9, 3, 2, "woodDark");
+  c.px(28, 8, "zinc");
+  c.px(30, 10, "zinc");
+  c.ellipse(15, 22, 5, 4, "wood");
+  c.ellipse(13, 23.5, 3, 2.5, "wood");
+  c.rect(14, 21, 3, 3, "woodDark");
+  c.px(15, 22, "ink");
+  c.rect(11, 25, 4, 1, "woodDark");
+  // strap over the shoulder
+  c.px(12, 15, "red");
+  c.px(11, 16, "red");
+  // strumming hand
+  c.rect(18, 21, 2, 2, "skin");
+  return finish(c);
+}
+
 // ---- write -------------------------------------------------------------------
 const assets: Record<string, Canvas> = {
   airport_bg: airport().scale(2),
@@ -658,6 +734,8 @@ const assets: Record<string, Canvas> = {
   npc_barista: barista(),
   npc_girard: girard(),
   npc_margaux: margaux(),
+  npc_ines: ines(),
+  npc_theo: theo(),
 };
 
 for (const key of ["airport_bg", "street_bg", "hostel_bg"]) {

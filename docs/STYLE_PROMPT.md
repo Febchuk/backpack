@@ -77,6 +77,8 @@ Character fills:
 - **npc_barista**: "café barista with a black hair bun, white shirt with navy marinière stripes, long green apron."
 - **npc_girard**: "Monsieur Girard, retired old man with a white moustache, navy beret, brown cardigan, red scarf and a cane, with a tiny cream terrier dog at his feet."
 - **npc_margaux**: "Margaux the baker, red hair under a tall white toque, red neckerchief, flour-dusted apron, a baguette under her arm."
+- **npc_ines**: "Inès the hostel receptionist, dark curly shoulder-length hair, round gold glasses, sky-blue hostel t-shirt with a green lanyard and white key card, holding a brass room key."
+- **npc_theo**: "Théo the street busker, shaggy blond hair under a plum beanie, cream and navy striped marinière, acoustic guitar slung across his body on a red strap, an open guitar case with coins at his feet."
 
 ## Asset keys
 
@@ -92,5 +94,9 @@ These are the keys in `apps/game/public/assets/manifest.json`, as defined in `do
 | `npc_barista` | `npc_barista.png` | 32×32 |
 | `npc_girard` | `npc_girard.png` | 32×32 |
 | `npc_margaux` | `npc_margaux.png` | 32×32 |
+| `npc_ines` | `npc_ines.png` | 32×32 |
+| `npc_theo` | `npc_theo.png` | 32×32 |
 
-To regenerate the placeholders, run `pnpm exec tsx scripts/assets/gen-placeholders.ts`.
+To regenerate the placeholders, run `pnpm exec tsx scripts/assets/gen-placeholders.ts`. The output is deterministic, so an unchanged sprite regenerates byte for byte.
+
+**Current state.** Every shipped asset, including `npc_ines` and `npc_theo`, is the procedural art from `gen-placeholders.ts`, drawn only from the locked palette with the rules above. No Gemini-generated art has replaced it yet. If Gemini art lands, it must pass `tests/level3/assets.manifest.test.ts` (contract sizes, transparent sprite backgrounds, palette-only pixels), and it has to replace the whole sprite set at once so the characters still match.

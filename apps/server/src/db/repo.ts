@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { GLOSSARY, MISSIONS, PlayerState, normalizePhrase, type MissionKey } from "@backpack/shared";
+import { ECONOMY, GLOSSARY, MISSIONS, PlayerState, normalizePhrase, starsForHints, type MissionKey } from "@backpack/shared";
 import type { Db } from "./db";
 
 const now = () => new Date().toISOString();
@@ -191,6 +191,30 @@ export function repo(db: Db) {
         .prepare("SELECT id, phone FROM players WHERE phone IS NOT NULL ORDER BY created_at DESC, rowid DESC")
         .all() as { id: string; phone: string }[];
       return rows.find((r) => norm(r.phone) === want)?.id ?? null;
+    },
+
+    /** L4 backend: subtracts euros, never going below 0. */
+    spendEuros(playerId: string, n: number) {
+      db.prepare("UPDATE players SET euros = MAX(euros - ?, 0) WHERE id = ?").run(Math.max(0, n), playerId);
+    },
+
+    /**
+     * L4 backend: completes a mission once. The first completion runs `completeMission`, sets
+     * stars = starsForHints(hints_used) and charges ECONOMY.missionCost. Returns false if it was already done.
+     */
+    settleMission(playerId: string, key: MissionKey): boolean {
+      let settled = false;
+      db.transaction(() => {
+        const row = db.prepare("SELECT status, hints_used FROM missions WHERE player_id = ? AND mission_key = ?").get(playerId, key) as
+          | { status: string; hints_used: number }
+          | undefined;
+        if (!row || row.status === "done") return;
+        self.completeMission(playerId, key);
+        db.prepare("UPDATE missions SET stars = ? WHERE player_id = ? AND mission_key = ?").run(starsForHints(row.hints_used), playerId, key);
+        self.spendEuros(playerId, ECONOMY.missionCost[key]);
+        settled = true;
+      })();
+      return settled;
     },
   };
   return self;

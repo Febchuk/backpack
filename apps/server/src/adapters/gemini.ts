@@ -77,6 +77,12 @@ export function fallbackTurn(input: NpcTurnInput): NpcTurnResponse {
   };
 }
 
+/** reply_fr is spoken aloud: drop any `*stage direction*` the model put there (they belong in reply_en_hint). */
+export function spokenReply(reply: string): string {
+  const spoken = reply.replace(/\*[^*]*\*/g, " ").replace(/\s+/g, " ").trim();
+  return spoken || reply;
+}
+
 /** Gemini wants a bare media type; browsers send e.g. "audio/webm;codecs=opus" or nothing useful. */
 export function audioMimeType(mimeType: string | undefined): string {
   const base = (mimeType ?? "").split(";")[0].trim().toLowerCase();
@@ -156,7 +162,7 @@ export function createRealGeminiAdapter(config: Config, client?: GeminiClient): 
       const ms = Date.now() - started;
       recordLatency(ms);
       console.log(`[gemini] npc=${input.npcId} ${ms}ms${turn ? "" : " (fallback)"} p50=${getLatencyStats().p50}ms`);
-      return turn ? reconcileGrading(input, turn) : fallbackTurn(input);
+      return turn ? reconcileGrading(input, { ...turn, reply_fr: spokenReply(turn.reply_fr) }) : fallbackTurn(input);
     },
   };
 }

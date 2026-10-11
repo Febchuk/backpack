@@ -3,6 +3,22 @@ import type { HistoryTurn } from "./history";
 
 export type PromptInput = Omit<NpcTurnInput, "audio" | "text" | "npcId"> & { npcId?: string; history?: HistoryTurn[] };
 
+/**
+ * Adaptive NPCs (CONTRACT.md, Level 4). Level 1: slow, short, simple, with gestures as a stage direction at the
+ * start of reply_en_hint. Higher levels: the NPC's natural pace, still short.
+ */
+export function levelGuidance(level: number): string {
+  if (level <= 1)
+    return [
+      "The player's French level is 1 (total beginner). ADAPT FOR A BEGINNER:",
+      "- Speak slowly and clearly: one short sentence, or two very short ones, of at most 8 words each.",
+      "- Use only simple, common words and the present tense. Even if you are normally fast or slangy, slow down and keep it simple.",
+      '- Gesture to help them understand: "reply_en_hint" may begin with a short stage direction in asterisks, e.g. "*points at the menu* What would you like?".',
+      "- Never put stage directions or asterisks in \"reply_fr\": it is spoken aloud.",
+    ].join("\n");
+  return `The player's French level is ${level} (1 = total beginner). Speak at your natural pace and use your usual vocabulary, still in short replies.`;
+}
+
 /** System prompt for the real Gemini adapter: persona + mission + phrases + level + memory, with a strict JSON reply shape. */
 export function buildSystemPrompt(input: PromptInput): string {
   const required = input.requiredPhrases;
@@ -13,7 +29,8 @@ export function buildSystemPrompt(input: PromptInput): string {
         `MISSION: the player's goal is "${input.missionGoal}".`,
         `Required phrases (all must be used, by intent, to complete the mission): ${list(required)}.`,
         `Bonus phrases: ${list(bonus)}.`,
-        `Set "mission_complete" to true only if every required phrase was used; otherwise false.`,
+        `Set "mission_complete" to true only if every required phrase was used, in this turn or earlier in this conversation (see MEMORY); otherwise false.`,
+        `List in "phrases_used" only the phrases used in this turn.`,
       ].join("\n")
     : [
         "OPEN PLAY: there is no mission. Chat freely and naturally in character.",
@@ -30,7 +47,7 @@ export function buildSystemPrompt(input: PromptInput): string {
 
   return [
     input.persona,
-    `The player's French level is ${input.level} (1 = total beginner). Adapt your speed and vocabulary to it.`,
+    levelGuidance(input.level),
     mission,
     memory,
     [

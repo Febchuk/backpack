@@ -6,7 +6,7 @@ import { gradeTranscript, verifyDialSignature } from "../routes/dialWebhook";
 import { runLunaTool } from "../mcp/tools";
 import { parseDialFormat, parseElevenLabsFormat, transcode, type AudioFormat } from "./codec";
 import { createElevenLabsConnector, type AgentConnection, type AgentConnector, type ElevenLabsEvent } from "./elevenlabs";
-import { lunaCallSetup, type PlacedCall } from "./prompt";
+import { lunaCallSetup, lunaTtsOverride, type PlacedCall } from "./prompt";
 
 /** Dial appends the call id to the configured wsUrl: `wss://<PUBLIC_HOST>/dial/voice/<call_id>`. */
 export const VOICE_PATH = "/dial/voice";
@@ -19,6 +19,11 @@ export interface VoiceBridgeOptions {
   reconnectGraceMs?: number;
   /** After ElevenLabs hangs up, how long to wait for the goodbye `mark` echo before sending `end_call`. */
   goodbyeTimeoutMs?: number;
+  /**
+   * Send `tts.speed` (slower for level-1 players). Needs the agent's "Voice speed" override toggle, or ElevenLabs
+   * rejects the conversation, so it is off unless ELEVENLABS_SPEED_OVERRIDE=1.
+   */
+  speedOverride?: boolean;
 }
 
 type Turn = { speaker: "luna" | "player"; text: string };
@@ -78,6 +83,7 @@ export function attachVoiceBridge(server: Server, deps: Deps, opts: VoiceBridgeO
   const connectAgent = opts.connectAgent ?? createElevenLabsConnector(deps.config);
   const graceMs = opts.reconnectGraceMs ?? 20_000;
   const goodbyeMs = opts.goodbyeTimeoutMs ?? 10_000;
+  const speedOverride = opts.speedOverride ?? process.env.ELEVENLABS_SPEED_OVERRIDE === "1";
   const wss = new WebSocketServer({ noServer: true });
   const sessions = new Map<string, CallSession>();
   const finished = new Set<string>();
@@ -222,7 +228,8 @@ export function attachVoiceBridge(server: Server, deps: Deps, opts: VoiceBridgeO
     };
     sessions.set(callId, s);
     const { prompt, firstMessage } = lunaCallSetup(deps.repo, placed);
-    const voiceId = deps.config.elevenLabsVoiceId;
+    const level = placed ? deps.repo.getState(placed.player_id)?.player.level : undefined;
+    const tts = lunaTtsOverride({ voiceId: deps.config.elevenLabsVoiceId, level, speedOverride });
     agent.onMessage((ev) => onAgentEvent(s, ev));
     agent.onClose((reason) => {
       if (s.agentClosed || s.finalized) return;
@@ -236,7 +243,7 @@ export function attachVoiceBridge(server: Server, deps: Deps, opts: VoiceBridgeO
       type: "conversation_initiation_client_data",
       conversation_config_override: {
         agent: { prompt: { prompt }, first_message: firstMessage, language: "fr" },
-        ...(voiceId ? { tts: { voice_id: voiceId } } : {}),
+        ...(tts ? { tts } : {}),
       },
     });
     console.log(`[voice] ${callId} connected (${placed ? placed.kind : "unknown call"})`);
